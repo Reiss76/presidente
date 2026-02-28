@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Code {
+  id                 BigInt   @id @default(autoincrement())
+  code               String   @db.Citext
+  razon_social       String?
+  estado             String?
+  municipio          String?
+  direccion          String?
+  lat                Float?
+  lon                Float?
+
+  // OJO:
+  // En la DB la columna se llama "place_id", pero tú la estás reutilizando para guardar "comentario".
+  // Prisma lo mapea correctamente con @map("place_id").
+  comentario         String?  @map("place_id")
+  formatted_address  String?
+  grupo_id           Int?
+  encargado_actual   String?
+  encargado_anterior String?
+
+  // ✅ Calibración
+  // S = Solicitada
+  // R = Realizada
+  calibracion        String?  @db.VarChar(1)
+
+  // ✅ M13
+  m13                Boolean  @default(false)
+
+  // ✅ BAJA
+  baja               Boolean  @default(false)
+
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@map("codes")
+  @@unique([code])
+  @@index([lat, lon])
+}
+
+model GeocodeCache {
+  id                BigInt   @id @default(autoincrement())
+  address_hash      String   @unique
+  address_str       String
+  lat               Float?
+  lon               Float?
+  place_id          String?
+  formatted_address String?
+  status            String?
+  provider          String   @default("google")
+  created_at        DateTime @default(now())
+  refreshed_at      DateTime?
+
+  @@map("geocode_cache")
+}
+
+model Group {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  name       String
+  color_hex  String   @db.Char(7)
+  active     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("groups")
+}

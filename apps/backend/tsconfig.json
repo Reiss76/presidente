@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "app",                    // 👈 el folder app/api/... que trae tesseract/next
+    "src/image-search",       // 👈 controlador viejo con tesseract
+    "src/modules/geocoding",  // 👈 módulos que ya no son válidos con tu Prisma actual
+    "src/modules/groups",
+    "src/modules/notes",
+    "src/modules/files"
+  ]
+}
