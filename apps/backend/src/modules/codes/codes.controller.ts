@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   BadRequestException,
   Body,
   Controller,
@@ -544,23 +545,29 @@ export class CodesController {
         webEnabled: true,
       };
     } catch (webErr: any) {
-      const fallback = await runOpenAI(false);
-      let parsed: any = {};
       try {
-        parsed = JSON.parse(fallback.text);
-      } catch {
-        parsed = { summary: fallback.text, sources: [] };
-      }
+        const fallback = await runOpenAI(false);
+        let parsed: any = {};
+        try {
+          parsed = JSON.parse(fallback.text);
+        } catch {
+          parsed = { summary: fallback.text, sources: [] };
+        }
 
-      return {
-        ok: true,
-        code: core,
-        internal,
-        summary: String(parsed?.summary || fallback.text || '').trim(),
-        sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
-        webEnabled: false,
-        note: `No se pudo activar web_search en OpenAI: ${webErr?.message || 'unknown error'}`,
-      };
+        return {
+          ok: true,
+          code: core,
+          internal,
+          summary: String(parsed?.summary || fallback.text || '').trim(),
+          sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
+          webEnabled: false,
+          note: `No se pudo activar web_search en OpenAI: ${webErr?.message || 'unknown error'}`,
+        };
+      } catch (fallbackErr: any) {
+        throw new BadGatewayException(
+          `Fallo en proveedor IA. web=${webErr?.message || 'unknown'} | fallback=${fallbackErr?.message || 'unknown'}`,
+        );
+      }
     }
   }
 
