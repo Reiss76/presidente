@@ -10,19 +10,22 @@ async function bootstrap() {
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
 
+      const envAllowed = (process.env.FRONTEND_URLS || '')
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
       const allowed = [
         'https://cosmosx.tech',
         'https://www.cosmosx.tech',
+        ...envAllowed,
       ];
 
-      if (
-        allowed.includes(origin) ||
-        /\.vercel\.app$/.test(origin)
-      ) {
+      if (allowed.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(null, false);
+      return callback(new Error(`CORS blocked for origin: ${origin}`), false);
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type,Authorization,X-Requested-With',

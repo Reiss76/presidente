@@ -16,6 +16,8 @@ Monorepo unificado del proyecto con frontend y backend bajo un solo flujo de tra
 
 ## Configuración
 
+> Seguridad backend: configura `FRONTEND_URLS` (separado por comas) para controlar explícitamente los orígenes permitidos por CORS.
+
 1. Instala dependencias:
 
 ```bash

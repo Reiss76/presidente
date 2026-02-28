@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import ClientErrorReporter from './components/ClientErrorReporter';
 
@@ -7,21 +7,20 @@ export const metadata: Metadata = {
   description:
     'Buscador y panel administrativo para consultar y actualizar códigos, razones sociales y domicilios.',
   icons: {
-    icon: '/icon-192.png',          // ícono estándar
-    apple: '/icon-192.png',         // ícono para iPhone (home screen)
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
-  themeColor: '#000000',
-
-  /* 🔥 Punto 4: aquí van los metatags especiales para Web-App en iOS */
   other: {
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#000000',
 };
 
 export default function RootLayout({
