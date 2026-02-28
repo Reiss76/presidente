@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import AppHeader from '../../components/AppHeader';
 import { getApiBase, fetchJson } from '../../lib/api';
 
 type AuthUser = {
@@ -156,6 +157,14 @@ export default function AsignacionesPage() {
       }
     } catch {}
   }, [mounted]);
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('cosmosx_user');
+      sessionStorage.removeItem('cosmosx_user');
+    } catch {}
+    window.location.href = '/login';
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -364,19 +373,12 @@ export default function AsignacionesPage() {
           </div>
         )}
 
-        {/* HEADER */}
-        <section className="home-card">
-          <div className="home-header">
-            <div>
-              <div className="home-tag">COSMOSX</div>
-              <h1 className="home-title">ASIGNACIONES</h1>
-              <p className="home-sub">
-                Sesión iniciada como {user.username} ({user.role})
-              </p>
-            </div>
-            <a href="/" className="home-config-btn">Volver</a>
-          </div>
-        </section>
+        <AppHeader
+          title="COSMOSX"
+          subtitle="Asignaciones"
+          user={{ username: user.username, role: user.role }}
+          onLogout={handleLogout}
+        />
 
         {/* FILTROS */}
         <section className="home-card">

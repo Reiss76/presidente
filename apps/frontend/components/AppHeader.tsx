@@ -37,11 +37,11 @@ export default function AppHeader(props: {
     showHome = true,
     homeHref = '/',
 
-    showAsignaciones,
-    showAdmin,
-    showVisitas,
+    showAsignaciones = true,
+    showAdmin = true,
+    showVisitas = true,
     showDashboard,
-    showMapas,
+    showMapas = true,
 
     backHref,
     dashboardHref = '/admin/dashboard',

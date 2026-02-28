@@ -536,10 +536,6 @@ export default function VisitasPage() {
   title="COSMOSX"
   subtitle="Visitas"
   user={user}
-  showAsignaciones={true}
-  showAdmin={true}
-  showVisitas={true}
-  showDashboard={user?.role === 'admin'}
 />
         <section className="admin-card">
           <div className="admin-label">Periodo</div>

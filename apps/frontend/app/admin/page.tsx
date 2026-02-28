@@ -66,10 +66,6 @@ export default function AdminPage() {
           subtitle="Configuración"
           user={{ username: currentUser.username, role: currentUser.role }}
           onLogout={handleLogout}
-          showAsignaciones={true}
-          showAdmin={true}
-          showVisitas={true}
-          showDashboard={currentUser.role === 'admin'}
         />
 
         {/* ✅ Cargar nuevo código arriba */}

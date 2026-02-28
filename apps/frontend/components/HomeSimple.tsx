@@ -1589,11 +1589,6 @@ export default function HomeSimple() {
   user={user ? { username: user.username, role: user.role } : null}
   onClear={clearAllResults}
   onLogout={handleLogout}
-  showAsignaciones={user?.role === 'editor' || user?.role === 'admin'}
-  showVisitas={true}
-  showMapas={true}
-  showDashboard={user?.role === 'admin' || user?.role === 'editor'}
-  showAdmin={true}
 />
 
         {/* DEBUG BANNER — solo visible si hay error */}

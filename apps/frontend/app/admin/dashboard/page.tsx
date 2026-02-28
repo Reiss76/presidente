@@ -761,10 +761,6 @@ export default function AdminDashboardPage() {
           title="COSMOSX"
           subtitle="Dashboard Operacional"
           user={{ username: currentUser.username, role: currentUser.role }}
-          showAsignaciones={true}
-          showAdmin={true}
-          showVisitas={true}
-          showDashboard={true}
         />
 
         <section className="admin-card">
