@@ -7,6 +7,8 @@
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
     "start:dev": "nest start --watch",
+    "lint": "tsc --noEmit",
+    "test": "node -e \"console.log('No backend tests configured yet')\"",
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate"
   },
@@ -20,7 +22,6 @@
     "glob": "^10.3.10",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-
     "@aws-sdk/client-s3": "^3.621.0",
     "@aws-sdk/s3-request-presigner": "^3.621.0"
   },

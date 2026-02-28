@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node -e \"console.log('No frontend tests configured yet')\""
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
