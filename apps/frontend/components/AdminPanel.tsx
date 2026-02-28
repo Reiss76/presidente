@@ -1041,13 +1041,49 @@ export default function AdminPanel(props: AdminPanelProps) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API}/codes/tools/catalogs`, { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          setCatalogGroups((data as any).groups || []);
-          setCatalogEncargados((data as any).encargados || []);
-          setCatalogSubEncargados((data as any).subEncargados || []);
+        // Endpoint principal (backend nuevo)
+        let groups: Array<{ id: number; name: string }> = [];
+        let encargados: Array<{ id: number; nombre: string }> = [];
+        let subEncargados: Array<{ id: number; nombre: string }> = [];
+
+        const primaryRes = await fetch(`${API}/codes/tools/catalogs`, { credentials: 'include' });
+
+        if (primaryRes.ok) {
+          const data = await primaryRes.json();
+          groups = (data as any).groups || [];
+          encargados = (data as any).encargados || [];
+          subEncargados = (data as any).subEncargados || [];
+        } else if (primaryRes.status === 404) {
+          // Fallback (backend anterior): /codes/assigned/catalogs
+          const fallbackRes = await fetch(`${API}/codes/assigned/catalogs`, {
+            credentials: 'include',
+          });
+
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+
+            const users = Array.isArray((fallbackData as any).users)
+              ? ((fallbackData as any).users as string[])
+              : [];
+            const subs = Array.isArray((fallbackData as any).subs)
+              ? ((fallbackData as any).subs as string[])
+              : [];
+
+            encargados = users.map((nombre, idx) => ({ id: idx + 1, nombre }));
+            subEncargados = subs.map((nombre, idx) => ({ id: idx + 1, nombre }));
+          }
+
+          // Grupos vienen mejor de /codes/groups (existe en ambos backends)
+          const groupsRes = await fetch(`${API}/codes/groups`, { credentials: 'include' });
+          if (groupsRes.ok) {
+            const groupsData = await groupsRes.json();
+            groups = Array.isArray(groupsData) ? groupsData : [];
+          }
         }
+
+        setCatalogGroups(groups);
+        setCatalogEncargados(encargados);
+        setCatalogSubEncargados(subEncargados);
       } catch (err) {
         console.error(err);
       }
