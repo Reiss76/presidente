@@ -68,6 +68,10 @@ docker compose up --build
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8080/health
 
+## Deploy
+
+- Runbook Vercel + Railway: `docs/DEPLOY_VERCEL_RAILWAY.md`
+
 ## Gobierno del repo
 
 - PR template: `.github/pull_request_template.md`
