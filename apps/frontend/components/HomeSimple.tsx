@@ -196,6 +196,10 @@ export default function HomeSimple() {
   const [codeLoading, setCodeLoading] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeResult, setCodeResult] = useState<CodeItem | null>(null);
+  const [researchLoading, setResearchLoading] = useState(false);
+  const [researchError, setResearchError] = useState<string | null>(null);
+  const [researchText, setResearchText] = useState<string>('');
+  const [researchSources, setResearchSources] = useState<Array<{ title: string; url: string }>>([]);
 
   // =========
   // BUSCAR POR TEXTO
@@ -835,6 +839,9 @@ export default function HomeSimple() {
     setCodeLoading(true);
     setCodeError(null);
     setCodeResult(null);
+    setResearchError(null);
+    setResearchText('');
+    setResearchSources([]);
 
     setTextResults([]);
     setBulkResults([]);
@@ -877,6 +884,33 @@ export default function HomeSimple() {
     setCodeLoading(false);
   }
 }
+
+  async function handleResearchCode() {
+    if (!codeResult) return;
+
+    try {
+      setResearchLoading(true);
+      setResearchError(null);
+      setResearchText('');
+      setResearchSources([]);
+
+      const data = await fetchJson<any>(`/codes/tools/research`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: codeResult.code }),
+      });
+
+      setResearchText(String(data?.summary || 'Sin resumen.'));
+      setResearchSources(Array.isArray(data?.sources) ? data.sources : []);
+      if (data?.note) {
+        setResearchError(String(data.note));
+      }
+    } catch (e: any) {
+      setResearchError(e?.message || 'No se pudo investigar el PL.');
+    } finally {
+      setResearchLoading(false);
+    }
+  }
 
   // =========
   // BUSCAR TEXTO
@@ -1629,7 +1663,44 @@ export default function HomeSimple() {
           </form>
 
           {codeError && <p className="home-error">{codeError}</p>}
-          {codeResult && <div style={{ marginTop: 10 }}>{renderResultCard(codeResult)}</div>}
+          {codeResult && (
+            <>
+              <div style={{ marginTop: 10 }}>{renderResultCard(codeResult)}</div>
+              <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  className="home-config-btn"
+                  style={BTN_SECONDARY}
+                  type="button"
+                  onClick={handleResearchCode}
+                  disabled={researchLoading}
+                >
+                  {researchLoading ? 'Investigando…' : 'Investigar PL con IA'}
+                </button>
+              </div>
+            </>
+          )}
+
+          {(researchError || researchText) && (
+            <div style={{ marginTop: 12, padding: 12, border: '1px solid #e5e7eb', borderRadius: 12 }}>
+              <h3 style={{ margin: 0, fontSize: 14 }}>Research IA</h3>
+              {researchError && <p className="home-sub" style={{ color: '#92400e', marginTop: 8 }}>{researchError}</p>}
+              {researchText && <p className="home-sub" style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{researchText}</p>}
+              {researchSources.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <div className="home-tag" style={{ marginBottom: 6 }}>Fuentes</div>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {researchSources.slice(0, 10).map((s, i) => (
+                      <li key={`${s.url}-${i}`} style={{ marginBottom: 4 }}>
+                        <a href={s.url} target="_blank" rel="noreferrer">
+                          {s.title || s.url}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* ===================== */}

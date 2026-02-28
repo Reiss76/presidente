@@ -23,6 +23,17 @@ const vision = require('@google-cloud/vision');
 
 const CODE_REGEX = /PL\/\d{1,10}(?:\/[A-Z0-9]+)*/g;
 
+type ResearchSource = { title: string; url: string };
+type ResearchResult = {
+  ok: boolean;
+  code: string;
+  internal: unknown;
+  summary: string;
+  sources: ResearchSource[];
+  webEnabled: boolean;
+  note?: string;
+};
+
 @Controller('codes')
 export class CodesController {
   constructor(private readonly codesService: CodesService) {}
@@ -446,6 +457,110 @@ export class CodesController {
       throw new InternalServerErrorException(
         'No se pudo procesar la imagen. Intenta otra vez con más luz.',
       );
+    }
+  }
+
+  // =========================
+  // INVESTIGACIÓN IA (PL)
+  // =========================
+  @Post('tools/research')
+  async research(@Body('code') inputCode?: string): Promise<ResearchResult> {
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (!openaiKey) {
+      throw new BadRequestException('OPENAI_API_KEY no está configurada en backend.');
+    }
+
+    const cleanInput = String(inputCode || '').trim();
+    if (!cleanInput) {
+      throw new BadRequestException('El campo "code" es obligatorio.');
+    }
+
+    const core = (() => {
+      const m = cleanInput.toUpperCase().match(/PL\/(\d+)\//);
+      if (m?.[1]) return m[1];
+      const d = cleanInput.match(/\d+/);
+      return d?.[0] || cleanInput;
+    })();
+
+    const internal = await this.codesService.findByCode(core);
+    if (!internal) {
+      throw new NotFoundException(`No existe PL/código en base interna: ${core}`);
+    }
+
+    const model = process.env.OPENAI_RESEARCH_MODEL || 'gpt-4.1-mini';
+    const prompt = [
+      'Eres analista operativo de códigos PL en México.',
+      `Código/PL a investigar: ${core}`,
+      'Datos internos confiables (JSON):',
+      JSON.stringify(internal),
+      'Tarea:',
+      '1) Genera un resumen ejecutivo útil para operación.',
+      '2) Incluye riesgos, contexto, y recomendaciones accionables.',
+      '3) Si usas web, prioriza fuentes oficiales y confiables.',
+      '4) Responde SIEMPRE en JSON con forma: { summary: string, sources: [{title,url}] }',
+    ].join('\n');
+
+    const runOpenAI = async (withWeb: boolean) => {
+      const body: any = {
+        model,
+        input: prompt,
+      };
+      if (withWeb) body.tools = [{ type: 'web_search_preview' }];
+
+      const res = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`OpenAI ${res.status}: ${txt.slice(0, 400)}`);
+      }
+
+      const data: any = await res.json();
+      const text = String(data?.output_text || '').trim();
+      return { text, data };
+    };
+
+    try {
+      const primary = await runOpenAI(true);
+      let parsed: any = {};
+      try {
+        parsed = JSON.parse(primary.text);
+      } catch {
+        parsed = { summary: primary.text, sources: [] };
+      }
+
+      return {
+        ok: true,
+        code: core,
+        internal,
+        summary: String(parsed?.summary || primary.text || '').trim(),
+        sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
+        webEnabled: true,
+      };
+    } catch (webErr: any) {
+      const fallback = await runOpenAI(false);
+      let parsed: any = {};
+      try {
+        parsed = JSON.parse(fallback.text);
+      } catch {
+        parsed = { summary: fallback.text, sources: [] };
+      }
+
+      return {
+        ok: true,
+        code: core,
+        internal,
+        summary: String(parsed?.summary || fallback.text || '').trim(),
+        sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
+        webEnabled: false,
+        note: `No se pudo activar web_search en OpenAI: ${webErr?.message || 'unknown error'}`,
+      };
     }
   }
 
