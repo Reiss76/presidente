@@ -37,24 +37,52 @@ export async function fetchJson<T = unknown>(
 
   const url = `${base}${path}`;
 
-  let res: Response;
-  try {
-    res = await fetch(url, { credentials: 'include', ...init });
-  } catch (networkErr: unknown) {
-    const msg = networkErr instanceof Error ? networkErr.message : 'error de red';
-    throw new Error(
-      `Fetch falló: ${url} — ${msg}`,
-    );
+  const method = (init?.method || 'GET').toUpperCase();
+  const timeoutMs = Number(process.env.NEXT_PUBLIC_FETCH_TIMEOUT_MS || 12000);
+  const retryCount = method === 'GET' ? 1 : 0;
+
+  const doFetch = async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch(url, {
+        credentials: 'include',
+        ...init,
+        signal: init?.signal ?? controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  let res: Response | null = null;
+  let lastErr: unknown = null;
+
+  for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+    try {
+      res = await doFetch();
+      break;
+    } catch (networkErr: unknown) {
+      lastErr = networkErr;
+      if (attempt >= retryCount) break;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+
+  if (!res) {
+    const msg = lastErr instanceof Error ? lastErr.message : 'error de red';
+    throw new Error(`Fetch falló: ${url} — ${msg}`);
   }
 
   if (!res.ok) {
     let body = '';
     try {
       body = await res.text();
-    } catch { /* ignore */ }
-    throw new Error(
-      `Error ${res.status} en ${url}${body ? ` — ${body.slice(0, 300)}` : ''}`,
-    );
+    } catch {
+      /* ignore */
+    }
+    throw new Error(`Error ${res.status} en ${url}${body ? ` — ${body.slice(0, 300)}` : ''}`);
   }
 
   return res.json() as Promise<T>;
