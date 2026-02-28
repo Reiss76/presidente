@@ -1996,13 +1996,13 @@ export default function AdminPanel(props: AdminPanelProps) {
         <div className="admin-results">
           {results.map((item) => (
             <article key={item.id} className="admin-result-card" style={{ position: 'relative' }}>
-              {/* ✅ BADGE BAJA (top left if active) */}
+              {/* ✅ BADGE BAJA (top right if active) */}
               {item.baja === true && (
                 <div
                   style={{
                     position: 'absolute',
-                    left: 12,
-                    top: 12,
+                    right: 12,
+                    top: item.calibracion ? 44 : 12,
                     fontSize: 11,
                     fontWeight: 800,
                     padding: '4px 10px',
