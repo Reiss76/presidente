@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main"]
+    branches: ['main']
 
 jobs:
   build:
@@ -28,3 +28,11 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Backend health smoke test
+        run: |
+          node apps/backend/dist/main.js &
+          APP_PID=$!
+          sleep 8
+          curl -fsS http://127.0.0.1:8080/health | grep '"ok":true'
+          kill $APP_PID

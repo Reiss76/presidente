@@ -3,9 +3,11 @@
   "private": true,
   "workspaces": [
     "apps/frontend",
-    "apps/backend"
+    "apps/backend",
+    "packages/shared"
   ],
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "dev": "npm run dev:backend",
     "dev:frontend": "npm --workspace apps/frontend run dev",
     "dev:backend": "npm --workspace apps/backend run start:dev",
@@ -15,8 +17,13 @@
     "lint": "npm run lint:frontend && npm run lint:backend",
     "lint:frontend": "npm --workspace apps/frontend run lint",
     "lint:backend": "npm --workspace apps/backend run lint",
+    "format": "npx prettier --write package.json .prettierrc.json .github/workflows/ci.yml apps/frontend/package.json apps/backend/package.json packages/shared/package.json packages/shared/index.js packages/shared/index.d.ts apps/backend/src/app.controller.ts apps/backend/src/health.ts apps/frontend/test/shared.test.js apps/backend/test/health.test.js",
+    "format:check": "npx prettier --check package.json .prettierrc.json .github/workflows/ci.yml apps/frontend/package.json apps/backend/package.json packages/shared/package.json packages/shared/index.js packages/shared/index.d.ts apps/backend/src/app.controller.ts apps/backend/src/health.ts apps/frontend/test/shared.test.js apps/backend/test/health.test.js",
     "test": "npm run test:frontend && npm run test:backend",
     "test:frontend": "npm --workspace apps/frontend run test",
     "test:backend": "npm --workspace apps/backend run test"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
   }
 }
