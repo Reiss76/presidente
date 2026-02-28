@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     apple: '/icon-192.png',
   },
   other: {
-    'apple-mobile-web-app-capable': 'yes',
+    'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
   },
 };
@@ -31,8 +31,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* 👇 Punto 4 nuevamente por si el navegador no toma metadata.other */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"

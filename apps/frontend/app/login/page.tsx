@@ -81,21 +81,27 @@ export default function LoginPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="home-field-block" style={{ marginTop: 20 }}>
-            <label className="home-label">Usuario</label>
+            <label className="home-label" htmlFor="username">Usuario</label>
             <input
+              id="username"
+              name="username"
               className="input-pill"
               placeholder="usuario"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
 
-            <label className="home-label" style={{ marginTop: 12 }}>
+            <label className="home-label" htmlFor="password" style={{ marginTop: 12 }}>
               Contraseña
             </label>
             <input
+              id="password"
+              name="password"
               className="input-pill"
               type="password"
               placeholder="••••••"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
