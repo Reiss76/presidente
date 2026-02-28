@@ -450,8 +450,22 @@ export class CodesController {
   }
 
   // =========================
-  // BÚSQUEDAS
+  // CREAR + BÚSQUEDAS
   // =========================
+  @Post()
+  async create(
+    @Body()
+    body: {
+      code: string;
+      razon_social: string;
+      estado: string;
+      municipio: string;
+      direccion: string;
+    },
+  ) {
+    return this.codesService.createCode(body);
+  }
+
   @Get()
   async findAll(@Query('query') query?: string) {
     return this.codesService.search(query);
