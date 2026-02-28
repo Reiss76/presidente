@@ -25,9 +25,14 @@ npm install --workspaces
 2. Crea tus variables de entorno desde el ejemplo raíz y las de cada app:
 
 ```bash
-cp .env.example .env
+cp .env.dev.example .env
 cp apps/frontend/.env.example apps/frontend/.env.local
 ```
+
+> También tienes plantillas para otros entornos:
+>
+> - `.env.staging.example`
+> - `.env.production.example`
 
 > Ajusta valores según tu entorno local.
 
@@ -48,9 +53,22 @@ Se ejecuta en GitHub Actions (`.github/workflows/ci.yml`) para:
 - instalación de dependencias
 - lint
 - build
+- smoke test del endpoint `/health`
 
-## Próxima fase
+## Docker local
 
-- Agregar tests reales (unit/integration)
-- Compartir tipos entre front y back en `packages/`
-- Pipeline de deploy por entorno
+Levantar front + back juntos:
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8080/health
+
+## Gobierno del repo
+
+- PR template: `.github/pull_request_template.md`
+- CODEOWNERS: `.github/CODEOWNERS`
+- Release strategy: `docs/RELEASE.md`
+- Branch protection checklist: `docs/BRANCH_PROTECTION_CHECKLIST.md`

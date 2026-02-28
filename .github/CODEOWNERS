@@ -1,0 +1,7 @@
+# Default owners
+* @Reiss76
+
+# Optional granular owners
+/apps/frontend/ @Reiss76
+/apps/backend/ @Reiss76
+/packages/ @Reiss76
