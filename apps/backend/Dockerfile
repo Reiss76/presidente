@@ -1,13 +1,15 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci || npm install
+# Avoid lockfile strict failures + skip postinstall (prisma) until full source is copied
+RUN npm install --ignore-scripts
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+# Prisma schema exists only after COPY . .
+RUN npm run prisma:generate && npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
