@@ -588,6 +588,21 @@ export class CodesController {
     return this.codesService.createCode(body);
   }
 
+  // Compatibilidad con frontends legacy
+  @Post('tools/create-code')
+  async createLegacy(
+    @Body()
+    body: {
+      code: string;
+      razon_social: string;
+      estado: string;
+      municipio: string;
+      direccion: string;
+    },
+  ) {
+    return this.codesService.createCode(body);
+  }
+
   @Get()
   async findAll(@Query('query') query?: string) {
     return this.codesService.search(query);
