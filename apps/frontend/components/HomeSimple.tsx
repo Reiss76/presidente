@@ -1674,7 +1674,7 @@ export default function HomeSimple() {
                   onClick={handleResearchCode}
                   disabled={researchLoading}
                 >
-                  {researchLoading ? 'Investigando…' : 'Investigar PL con IA'}
+                  {researchLoading ? 'Consultando…' : 'Info extra'}
                 </button>
               </div>
             </>
