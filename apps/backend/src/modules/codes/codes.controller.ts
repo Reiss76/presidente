@@ -542,6 +542,31 @@ export class CodesController {
       return { text, data };
     };
 
+    // Links de búsqueda pública para que el usuario tenga salida directa
+    // aunque el proveedor IA no devuelva fuentes completas.
+    const searchLinks: ResearchSource[] = [
+      {
+        title: `Búsqueda web: ${fullPl} en gob.mx/CRE`,
+        url: `https://duckduckgo.com/?q=${encodeURIComponent(`${fullPl} site:gob.mx/cre`)}`,
+      },
+      {
+        title: `Búsqueda web: ${fullPl} en DOF`,
+        url: `https://duckduckgo.com/?q=${encodeURIComponent(`${fullPl} site:dof.gob.mx`)}`,
+      },
+      {
+        title: `Búsqueda general: ${fullPl}`,
+        url: `https://duckduckgo.com/?q=${encodeURIComponent(fullPl)}`,
+      },
+      {
+        title: `Base CRE – permisos otorgados`,
+        url: 'https://www.gob.mx/cre/articulos/permisos-otorgados-en-materia-de-petroliferos-58616',
+      },
+      {
+        title: `Base CRE – permisos definitivos`,
+        url: 'https://www.gob.mx/cre/articulos/permisos-definitivos-otorgados-en-materia-de-petrolifero',
+      },
+    ];
+
     try {
       const primary = await runOpenAI(true);
       let parsed: any = {};
@@ -551,12 +576,17 @@ export class CodesController {
         parsed = { summary: primary.text, sources: [] };
       }
 
+      const aiSources = Array.isArray(parsed?.sources) ? parsed.sources : [];
+      const sources = [...aiSources, ...searchLinks].filter(
+        (s, i, arr) => s?.url && arr.findIndex((x) => x.url === s.url) === i,
+      );
+
       return {
         ok: true,
         code: fullPl,
         internal,
         summary: String(parsed?.summary || primary.text || '').trim(),
-        sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
+        sources,
         webEnabled: true,
       };
     } catch (webErr: any) {
@@ -569,12 +599,17 @@ export class CodesController {
           parsed = { summary: fallback.text, sources: [] };
         }
 
+        const aiSources = Array.isArray(parsed?.sources) ? parsed.sources : [];
+        const sources = [...aiSources, ...searchLinks].filter(
+          (s, i, arr) => s?.url && arr.findIndex((x) => x.url === s.url) === i,
+        );
+
         return {
           ok: true,
           code: fullPl,
           internal,
           summary: String(parsed?.summary || fallback.text || '').trim(),
-          sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
+          sources,
           webEnabled: false,
           note: `No se pudo activar web_search en OpenAI: ${webErr?.message || 'unknown error'}`,
         };
