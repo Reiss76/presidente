@@ -546,24 +546,8 @@ export class CodesController {
     // aunque el proveedor IA no devuelva fuentes completas.
     const searchLinks: ResearchSource[] = [
       {
-        title: `Búsqueda web: ${fullPl} en gob.mx/CRE`,
-        url: `https://duckduckgo.com/?q=${encodeURIComponent(`${fullPl} site:gob.mx/cre`)}`,
-      },
-      {
-        title: `Búsqueda web: ${fullPl} en DOF`,
-        url: `https://duckduckgo.com/?q=${encodeURIComponent(`${fullPl} site:dof.gob.mx`)}`,
-      },
-      {
-        title: `Búsqueda general: ${fullPl}`,
+        title: `Búsqueda general en fuentes abiertas: ${fullPl}`,
         url: `https://duckduckgo.com/?q=${encodeURIComponent(fullPl)}`,
-      },
-      {
-        title: `Base CRE – permisos otorgados`,
-        url: 'https://www.gob.mx/cre/articulos/permisos-otorgados-en-materia-de-petroliferos-58616',
-      },
-      {
-        title: `Base CRE – permisos definitivos`,
-        url: 'https://www.gob.mx/cre/articulos/permisos-definitivos-otorgados-en-materia-de-petrolifero',
       },
     ];
 
