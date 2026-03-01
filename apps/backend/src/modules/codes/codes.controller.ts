@@ -489,9 +489,24 @@ export class CodesController {
     }
 
     const model = process.env.OPENAI_RESEARCH_MODEL || 'gpt-4.1-mini';
+
+    // Priorizar PL completo para investigación (ej: PL/2323/EXP/ES/2015)
+    // y usar el núcleo solo como referencia/fallback interno.
+    const fullPl = (() => {
+      const fromInput = cleanInput.toUpperCase();
+      if (fromInput.startsWith('PL/')) return fromInput;
+
+      const fromInternal = String((internal as any)?.code || '').toUpperCase();
+      if (fromInternal.startsWith('PL/')) return fromInternal;
+
+      return `PL/${core}`;
+    })();
+
     const prompt = [
       'Eres analista operativo de códigos PL en México.',
-      `Código/PL a investigar: ${core}`,
+      `PL completo a investigar: ${fullPl}`,
+      `Núcleo del PL (solo referencia): ${core}`,
+      'IMPORTANTE: usa el PL completo como identificador principal en el análisis y búsquedas.',
       'Datos internos confiables (JSON):',
       JSON.stringify(internal),
       'Tarea:',
@@ -538,7 +553,7 @@ export class CodesController {
 
       return {
         ok: true,
-        code: core,
+        code: fullPl,
         internal,
         summary: String(parsed?.summary || primary.text || '').trim(),
         sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
@@ -556,7 +571,7 @@ export class CodesController {
 
         return {
           ok: true,
-          code: core,
+          code: fullPl,
           internal,
           summary: String(parsed?.summary || fallback.text || '').trim(),
           sources: Array.isArray(parsed?.sources) ? parsed.sources : [],
