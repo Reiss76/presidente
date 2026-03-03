@@ -110,11 +110,14 @@ function extractPureCode(input: string): string {
 }
 
 function normalizeCodes(list: string[]): string[] {
-  return list
+  const cores = list
     .map((v) => v.trim())
     .filter(Boolean)
     .map(extractPureCode)
     .filter(Boolean);
+
+  // Evitar duplicados para que el conteo y resumen coincidan con Asignaciones
+  return Array.from(new Set(cores));
 }
 
 function groupLabelFromId(grupo_id?: number | null): string {
