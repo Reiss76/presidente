@@ -1028,6 +1028,27 @@ export default function MapasContent() {
                                     }}>
                                       {pl.baja === true ? 'BAJA' : 'ACTIVA'}
                                     </span>
+                                    {(() => {
+                                      const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
+                                      const isS = cal === 'S';
+                                      const isR = cal === 'R';
+                                      const label = isS ? 'Cal-S' : isR ? 'Cal-R' : 'Sin Cal';
+                                      const bg = isS ? '#0ea5e9' : isR ? '#111827' : '#dc2626';
+                                      return (
+                                        <span style={{
+                                          fontSize: '10px',
+                                          fontWeight: '700',
+                                          padding: '3px 6px',
+                                          borderRadius: '3px',
+                                          backgroundColor: bg,
+                                          color: 'white',
+                                          textTransform: 'uppercase',
+                                          letterSpacing: '0.3px',
+                                        }}>
+                                          {label}
+                                        </span>
+                                      );
+                                    })()}
                                     {visualStyle.badgeText && (
                                       <span style={{
                                         fontSize: '10px',
@@ -1251,6 +1272,29 @@ export default function MapasContent() {
                                         </div>
                                         <div className="mapas-pl-item-name" style={{ marginTop: 2, fontSize: 12 }}>
                                           {pl.razon_social || 'Sin razón social'}
+                                        </div>
+                                        <div style={{ marginTop: 4 }}>
+                                          {(() => {
+                                            const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
+                                            const isS = cal === 'S';
+                                            const isR = cal === 'R';
+                                            const label = isS ? 'Cal-S' : isR ? 'Cal-R' : 'Sin Cal';
+                                            const bg = isS ? '#0ea5e9' : isR ? '#111827' : '#dc2626';
+                                            return (
+                                              <span style={{
+                                                fontSize: '10px',
+                                                fontWeight: '700',
+                                                padding: '3px 6px',
+                                                borderRadius: '3px',
+                                                backgroundColor: bg,
+                                                color: 'white',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.3px',
+                                              }}>
+                                                {label}
+                                              </span>
+                                            );
+                                          })()}
                                         </div>
                                         <div className="mapas-pl-item-meta" style={{ marginTop: 2 }}>
                                           Usuario: <strong>{pl.encargado_actual?.trim() || 'SIN ASIGNAR'}</strong>
