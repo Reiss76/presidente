@@ -220,6 +220,7 @@ export default function HomeSimple() {
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [bulkResults, setBulkResults] = useState<CodeItem[]>([]);
   const [bulkNormCores, setBulkNormCores] = useState<string[]>([]);
+  const [bulkDuplicateCount, setBulkDuplicateCount] = useState(0);
   const [bulkDots, setBulkDots] = useState('');
 
   // =========
@@ -979,6 +980,7 @@ export default function HomeSimple() {
 
     const normalizedCores = normalizeCodes(raw);
     setBulkNormCores(normalizedCores);
+    setBulkDuplicateCount(Math.max(0, raw.length - normalizedCores.length));
 
     if (!normalizedCores.length) {
       setBulkError('Pega al menos un código.');
@@ -1777,6 +1779,11 @@ export default function HomeSimple() {
               <p className="home-msg" style={{ marginTop: 8 }}>
                 Se encontraron {bulkResults.length} de {bulkNormCores.length} código(s).
               </p>
+              {bulkDuplicateCount > 0 && (
+                <p className="home-msg" style={{ marginTop: 4 }}>
+                  Se ignoraron {bulkDuplicateCount} línea(s) duplicada(s) en la lista.
+                </p>
+              )}
               {bulkResults.length > 0 && (
                 <p className="home-msg" style={{ marginTop: 4 }}>
                   {bulkByUserSummary}
