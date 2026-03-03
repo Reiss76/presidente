@@ -191,7 +191,7 @@ export default function MapasContent() {
   const [mobileCompactList, setMobileCompactList] = useState(true);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [mapFilterText, setMapFilterText] = useState('');
-  const [metricGroupFilter, setMetricGroupFilter] = useState<'all' | '2000' | '500'>('all');
+  const [metricQuickFilter, setMetricQuickFilter] = useState<'all' | 'bajas' | 'visitas' | 'sinAsignar' | '2000' | '500'>('all');
   const [visitYearSet, setVisitYearSet] = useState<Set<number>>(new Set());
 
   const searchRequestIdRef = useRef(0);
@@ -517,7 +517,7 @@ export default function MapasContent() {
 
   // Reset metric quick-filter when changing target PL
   useEffect(() => {
-    setMetricGroupFilter('all');
+    setMetricQuickFilter('all');
   }, [selectedPL?.id]);
 
   // Effect 2: Load Nearby PLs whenever selectedPL.code or radiusKm changes
@@ -652,11 +652,26 @@ export default function MapasContent() {
     [groupNameById],
   );
 
-  // Visible list can be narrowed by metric click (Grupo 2000/500)
+  // Visible list can be narrowed by metric click
   const nearbyPLsVisible = useMemo(() => {
-    if (metricGroupFilter === 'all') return nearbyPLsFiltered;
-    return nearbyPLsFiltered.filter((pl) => isGroupMatch(pl, metricGroupFilter));
-  }, [nearbyPLsFiltered, metricGroupFilter, isGroupMatch]);
+    if (metricQuickFilter === 'all') return nearbyPLsFiltered;
+    if (metricQuickFilter === '2000' || metricQuickFilter === '500') {
+      return nearbyPLsFiltered.filter((pl) => isGroupMatch(pl, metricQuickFilter));
+    }
+    if (metricQuickFilter === 'bajas') {
+      return nearbyPLsFiltered.filter((pl) => pl.baja === true);
+    }
+    if (metricQuickFilter === 'visitas') {
+      return nearbyPLsFiltered.filter((pl) => visitYearSet.has(pl.id));
+    }
+    if (metricQuickFilter === 'sinAsignar') {
+      return nearbyPLsFiltered.filter((pl) => {
+        const enc = pl.encargado_actual?.trim() || '';
+        return enc === '' || enc.toUpperCase() === 'N/A';
+      });
+    }
+    return nearbyPLsFiltered;
+  }, [nearbyPLsFiltered, metricQuickFilter, isGroupMatch, visitYearSet]);
 
   // Map pins follow same visible subset when metric filter is active
   const mapPins = useMemo(() => {
@@ -742,34 +757,34 @@ export default function MapasContent() {
         {/* Quick Metrics Bar */}
         {selectedPL && (
           <div className="mapas-metrics-bar">
-            <div className="mapas-metric-item">
+            <button type="button" className="mapas-metric-item" onClick={() => setMetricQuickFilter('all')} style={{ cursor: 'pointer', border: metricQuickFilter === 'all' ? '2px solid #111827' : undefined, borderRadius: '10px' }}>
               <span className="mapas-metric-value">{metrics.visibles}</span>
               <span className="mapas-metric-label">Visibles</span>
-            </div>
-            <div className="mapas-metric-item">
+            </button>
+            <button type="button" className="mapas-metric-item" onClick={() => setMetricQuickFilter((v) => (v === 'bajas' ? 'all' : 'bajas'))} style={{ cursor: 'pointer', border: metricQuickFilter === 'bajas' ? '2px solid #111827' : undefined, borderRadius: '10px' }}>
               <span className="mapas-metric-value">{metrics.bajasVisible}</span>
               <span className="mapas-metric-label">Bajas</span>
-            </div>
-            <div className="mapas-metric-item">
+            </button>
+            <button type="button" className="mapas-metric-item" onClick={() => setMetricQuickFilter((v) => (v === 'visitas' ? 'all' : 'visitas'))} style={{ cursor: 'pointer', border: metricQuickFilter === 'visitas' ? '2px solid #8b5cf6' : undefined, borderRadius: '10px', background: metricQuickFilter === 'visitas' ? '#f5f3ff' : undefined }}>
               <span className="mapas-metric-value" style={{ color: '#8b5cf6' }}>{metrics.conVisitas}</span>
               <span className="mapas-metric-label">Con visitas (año)</span>
-            </div>
-            <div className="mapas-metric-item">
+            </button>
+            <button type="button" className="mapas-metric-item" onClick={() => setMetricQuickFilter((v) => (v === 'sinAsignar' ? 'all' : 'sinAsignar'))} style={{ cursor: 'pointer', border: metricQuickFilter === 'sinAsignar' ? '2px solid #ef4444' : undefined, borderRadius: '10px', background: metricQuickFilter === 'sinAsignar' ? '#fff1f2' : undefined }}>
               <span className="mapas-metric-value" style={{ color: '#ef4444' }}>{metrics.sinAsignar}</span>
               <span className="mapas-metric-label">Sin asignar</span>
-            </div>
+            </button>
             <button
               type="button"
               className="mapas-metric-item"
               onClick={() => {
-                setMetricGroupFilter((v) => (v === '2000' ? 'all' : '2000'));
+                setMetricQuickFilter((v) => (v === '2000' ? 'all' : '2000'));
                 setIsListOpen(true);
               }}
               style={{
                 cursor: 'pointer',
-                border: metricGroupFilter === '2000' ? '2px solid #3b82f6' : undefined,
+                border: metricQuickFilter === '2000' ? '2px solid #3b82f6' : undefined,
                 borderRadius: '10px',
-                background: metricGroupFilter === '2000' ? '#eff6ff' : undefined,
+                background: metricQuickFilter === '2000' ? '#eff6ff' : undefined,
               }}
               title="Filtrar lista por Grupo 2000"
             >
@@ -780,14 +795,14 @@ export default function MapasContent() {
               type="button"
               className="mapas-metric-item"
               onClick={() => {
-                setMetricGroupFilter((v) => (v === '500' ? 'all' : '500'));
+                setMetricQuickFilter((v) => (v === '500' ? 'all' : '500'));
                 setIsListOpen(true);
               }}
               style={{
                 cursor: 'pointer',
-                border: metricGroupFilter === '500' ? '2px solid #3b82f6' : undefined,
+                border: metricQuickFilter === '500' ? '2px solid #3b82f6' : undefined,
                 borderRadius: '10px',
-                background: metricGroupFilter === '500' ? '#eff6ff' : undefined,
+                background: metricQuickFilter === '500' ? '#eff6ff' : undefined,
               }}
               title="Filtrar lista por Grupo 500"
             >
@@ -966,7 +981,7 @@ export default function MapasContent() {
                     <div className="mapas-sidebar-section">
                       <h3>
                         PLs Cercanos ({nearbyPLsVisible.length}{totalCount !== null ? ` / ${totalCount}` : ''})
-                        {metricGroupFilter !== 'all' ? ` · Grupo ${metricGroupFilter}` : ''}
+                        {metricQuickFilter === '2000' || metricQuickFilter === '500' ? ` · Grupo ${metricQuickFilter}` : ''}
                       </h3>
                       {radiusKm >= 100 && (
                         <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>
@@ -1164,7 +1179,7 @@ export default function MapasContent() {
                         <div className="mapas-drawer-section">
                           <h4>
                             PLs Cercanos ({nearbyPLsVisible.length}{totalCount !== null ? ` / ${totalCount}` : ''})
-                            {metricGroupFilter !== 'all' ? ` · Grupo ${metricGroupFilter}` : ''}
+                            {metricQuickFilter === '2000' || metricQuickFilter === '500' ? ` · Grupo ${metricQuickFilter}` : ''}
                           </h4>
                           {radiusKm >= 100 && (
                             <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>
@@ -1233,6 +1248,9 @@ export default function MapasContent() {
                                           {pl.distancia_km != null && (
                                             <span className="mapas-pl-distance">{pl.distancia_km.toFixed(2)} km</span>
                                           )}
+                                        </div>
+                                        <div className="mapas-pl-item-name" style={{ marginTop: 2, fontSize: 12 }}>
+                                          {pl.razon_social || 'Sin razón social'}
                                         </div>
                                         <div className="mapas-pl-item-meta" style={{ marginTop: 2 }}>
                                           Usuario: <strong>{pl.encargado_actual?.trim() || 'SIN ASIGNAR'}</strong>
