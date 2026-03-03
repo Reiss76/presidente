@@ -188,6 +188,7 @@ export default function MapasContent() {
   const [loadingNearby, setLoadingNearby] = useState(false);
   const [groupNameById, setGroupNameById] = useState<Map<number, string>>(new Map());
   const [isListOpen, setIsListOpen] = useState(false);
+  const [mobileCompactList, setMobileCompactList] = useState(true);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [mapFilterText, setMapFilterText] = useState('');
   const [metricGroupFilter, setMetricGroupFilter] = useState<'all' | '2000' | '500'>('all');
@@ -1170,6 +1171,38 @@ export default function MapasContent() {
                               Radio grande: mostrando los primeros 200 pines
                             </div>
                           )}
+
+                          <div style={{ display: 'flex', gap: 6, margin: '6px 0 8px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setMobileCompactList(true)}
+                              className="home-config-btn"
+                              style={{
+                                padding: '6px 10px',
+                                fontSize: 12,
+                                background: mobileCompactList ? '#111827' : '#f1f5f9',
+                                color: mobileCompactList ? '#fff' : '#334155',
+                                border: '1px solid #cbd5e1',
+                              }}
+                            >
+                              Lista plana
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMobileCompactList(false)}
+                              className="home-config-btn"
+                              style={{
+                                padding: '6px 10px',
+                                fontSize: 12,
+                                background: !mobileCompactList ? '#111827' : '#f1f5f9',
+                                color: !mobileCompactList ? '#fff' : '#334155',
+                                border: '1px solid #cbd5e1',
+                              }}
+                            >
+                              Detalle
+                            </button>
+                          </div>
+
                           <div className="mapas-pl-list">
                             {nearbyPLsVisible.map((pl) => {
                               const visualStyle = getPlVisualStyle(pl, groupNameById);
@@ -1188,56 +1221,72 @@ export default function MapasContent() {
                                 >
                                   <div
                                     className="mapas-pl-chip"
-                                    style={{ 
+                                    style={{
                                       backgroundColor: visualStyle.color,
                                     }}
                                   />
                                   <div className="mapas-pl-item-content">
-                                    <div className="mapas-pl-item-header">
-                                      <span className="mapas-pl-item-code">{pl.code}</span>
-                                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        {pl.distancia_km != null && (
-                                          <span className="mapas-pl-distance">
-                                            {pl.distancia_km.toFixed(2)} km
-                                          </span>
-                                        )}
-                                        <span style={{
-                                          fontSize: '10px',
-                                          fontWeight: '700',
-                                          padding: '3px 6px',
-                                          borderRadius: '3px',
-                                          backgroundColor: pl.baja === true ? '#000000' : '#10b981',
-                                          color: pl.baja === true ? '#ef4444' : 'white',
-                                          textTransform: 'uppercase',
-                                          letterSpacing: '0.3px',
-                                        }}>
-                                          {pl.baja === true ? 'BAJA' : 'ACTIVA'}
-                                        </span>
-                                        {visualStyle.badgeText && (
-                                          <span style={{
-                                            fontSize: '10px',
-                                            fontWeight: '700',
-                                            padding: '3px 6px',
-                                            borderRadius: '3px',
-                                            backgroundColor: visualStyle.color,
-                                            color: 'white',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.3px',
-                                          }}>
-                                            {visualStyle.badgeText}
-                                          </span>
-                                        )}
+                                    {mobileCompactList ? (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                                          <span className="mapas-pl-item-code" style={{ fontSize: 14 }}>{pl.code}</span>
+                                          {pl.distancia_km != null && (
+                                            <span className="mapas-pl-distance">{pl.distancia_km.toFixed(2)} km</span>
+                                          )}
+                                        </div>
+                                        <div className="mapas-pl-item-meta" style={{ marginTop: 2 }}>
+                                          Usuario: <strong>{pl.encargado_actual?.trim() || 'SIN ASIGNAR'}</strong>
+                                        </div>
                                       </div>
-                                    </div>
-                                    <div className="mapas-pl-item-name">{pl.razon_social || 'Sin nombre'}</div>
-                                    <div className="mapas-pl-item-location">
-                                      {pl.municipio}, {pl.estado}
-                                    </div>
-                                    {pl.grupo_id && (
-                                      <div className="mapas-pl-item-meta"><strong>Grupo:</strong> {groupNameById.get(pl.grupo_id) ?? pl.grupo_id}</div>
-                                    )}
-                                    {pl.encargado_actual && (
-                                      <div className="mapas-pl-item-meta"><strong>Encargado:</strong> {pl.encargado_actual}</div>
+                                    ) : (
+                                      <>
+                                        <div className="mapas-pl-item-header">
+                                          <span className="mapas-pl-item-code">{pl.code}</span>
+                                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                            {pl.distancia_km != null && (
+                                              <span className="mapas-pl-distance">
+                                                {pl.distancia_km.toFixed(2)} km
+                                              </span>
+                                            )}
+                                            <span style={{
+                                              fontSize: '10px',
+                                              fontWeight: '700',
+                                              padding: '3px 6px',
+                                              borderRadius: '3px',
+                                              backgroundColor: pl.baja === true ? '#000000' : '#10b981',
+                                              color: pl.baja === true ? '#ef4444' : 'white',
+                                              textTransform: 'uppercase',
+                                              letterSpacing: '0.3px',
+                                            }}>
+                                              {pl.baja === true ? 'BAJA' : 'ACTIVA'}
+                                            </span>
+                                            {visualStyle.badgeText && (
+                                              <span style={{
+                                                fontSize: '10px',
+                                                fontWeight: '700',
+                                                padding: '3px 6px',
+                                                borderRadius: '3px',
+                                                backgroundColor: visualStyle.color,
+                                                color: 'white',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.3px',
+                                              }}>
+                                                {visualStyle.badgeText}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="mapas-pl-item-name">{pl.razon_social || 'Sin nombre'}</div>
+                                        <div className="mapas-pl-item-location">
+                                          {pl.municipio}, {pl.estado}
+                                        </div>
+                                        {pl.grupo_id && (
+                                          <div className="mapas-pl-item-meta"><strong>Grupo:</strong> {groupNameById.get(pl.grupo_id) ?? pl.grupo_id}</div>
+                                        )}
+                                        {pl.encargado_actual && (
+                                          <div className="mapas-pl-item-meta"><strong>Encargado:</strong> {pl.encargado_actual}</div>
+                                        )}
+                                      </>
                                     )}
                                   </div>
                                 </div>
