@@ -71,6 +71,22 @@ function hasValidCoordinates(lat: number | null | undefined, lon: number | null 
   return lat != null && lon != null && !(lat === 0 && lon === 0);
 }
 
+function getCalibrationBadge(pl: any): { label: string; bg: string } {
+  const raw = String(pl?.calibracion ?? pl?.calibracion_status ?? '')
+    .trim()
+    .toUpperCase();
+
+  // Compat: S/R, Solicitada/Realizada, y variantes cortas
+  if (raw === 'S' || raw.startsWith('SOLIC')) {
+    return { label: 'Calibración solicitada', bg: '#0ea5e9' };
+  }
+  if (raw === 'R' || raw.startsWith('REAL')) {
+    return { label: 'Calibración realizada', bg: '#16a34a' };
+  }
+
+  return { label: 'Sin calibración', bg: '#dc2626' };
+}
+
 // Normalize address for better geocoding in MX (remove accents/symbols, trim, uppercase)
 function normalizeAddress(input: string): string {
   return input
@@ -721,8 +737,7 @@ export default function MapasContent() {
 
     const htmlRows = rows
       .map((pl) => {
-        const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
-        const calLabel = cal === 'S' ? 'Cal-S' : cal === 'R' ? 'Cal-R' : 'Sin Cal';
+        const calLabel = getCalibrationBadge(pl).label;
         const enc = pl.encargado_actual?.trim() || 'SIN ASIGNAR';
         const dist = pl.distancia_km != null ? `${pl.distancia_km.toFixed(2)} km` : 'N/D';
         return `<tr>
@@ -1086,23 +1101,19 @@ export default function MapasContent() {
                                       {pl.baja === true ? 'BAJA' : 'ACTIVA'}
                                     </span>
                                     {(() => {
-                                      const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
-                                      const isS = cal === 'S';
-                                      const isR = cal === 'R';
-                                      const label = isS ? 'Cal-S' : isR ? 'Cal-R' : 'Sin Cal';
-                                      const bg = isS ? '#0ea5e9' : isR ? '#111827' : '#dc2626';
+                                      const cal = getCalibrationBadge(pl);
                                       return (
                                         <span style={{
                                           fontSize: '10px',
                                           fontWeight: '700',
                                           padding: '3px 6px',
                                           borderRadius: '3px',
-                                          backgroundColor: bg,
+                                          backgroundColor: cal.bg,
                                           color: 'white',
                                           textTransform: 'uppercase',
                                           letterSpacing: '0.3px',
                                         }}>
-                                          {label}
+                                          {cal.label}
                                         </span>
                                       );
                                     })()}
@@ -1346,23 +1357,19 @@ export default function MapasContent() {
                                         </div>
                                         <div style={{ marginTop: 4 }}>
                                           {(() => {
-                                            const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
-                                            const isS = cal === 'S';
-                                            const isR = cal === 'R';
-                                            const label = isS ? 'Cal-S' : isR ? 'Cal-R' : 'Sin Cal';
-                                            const bg = isS ? '#0ea5e9' : isR ? '#111827' : '#dc2626';
+                                            const cal = getCalibrationBadge(pl);
                                             return (
                                               <span style={{
                                                 fontSize: '10px',
                                                 fontWeight: '700',
                                                 padding: '3px 6px',
                                                 borderRadius: '3px',
-                                                backgroundColor: bg,
+                                                backgroundColor: cal.bg,
                                                 color: 'white',
                                                 textTransform: 'uppercase',
                                                 letterSpacing: '0.3px',
                                               }}>
-                                                {label}
+                                                {cal.label}
                                               </span>
                                             );
                                           })()}
