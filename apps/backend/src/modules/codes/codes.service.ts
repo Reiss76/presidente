@@ -1864,6 +1864,7 @@ async findNearby(
         lon: true,
         grupo_id: true,
         encargado_actual: true,
+        calibracion: true,
         baja: true,
       },
     });
@@ -1888,6 +1889,7 @@ async findNearby(
           lon: c.lon,
           grupo_id: c.grupo_id,
           encargado_actual: c.encargado_actual,
+          calibracion: c.calibracion ?? null,
           baja: c.baja ?? false,
           distanceKm: Math.round(distanceKm * 100) / 100,
         };
