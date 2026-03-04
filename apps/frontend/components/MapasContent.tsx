@@ -703,6 +703,63 @@ export default function MapasContent() {
     setFocusedPL(pl);
   }, []);
 
+  const handleExportPdf = useCallback(() => {
+    if (!selectedPL) return;
+
+    const rows = nearbyPLsVisible;
+    const now = new Date();
+    const title = `Reporte mapa - ${selectedPL.code}`;
+    const sub = `Generado: ${now.toLocaleString()} · Total: ${rows.length}`;
+
+    const escapeHtml = (s: string) =>
+      s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const htmlRows = rows
+      .map((pl) => {
+        const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
+        const calLabel = cal === 'S' ? 'Cal-S' : cal === 'R' ? 'Cal-R' : 'Sin Cal';
+        const enc = pl.encargado_actual?.trim() || 'SIN ASIGNAR';
+        const dist = pl.distancia_km != null ? `${pl.distancia_km.toFixed(2)} km` : 'N/D';
+        return `<tr>
+          <td>${escapeHtml(pl.code || '')}</td>
+          <td>${escapeHtml(pl.razon_social || 'Sin razón social')}</td>
+          <td>${escapeHtml(enc)}</td>
+          <td>${escapeHtml(calLabel)}</td>
+          <td>${escapeHtml(dist)}</td>
+        </tr>`;
+      })
+      .join('');
+
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    w.document.write(`<!doctype html>
+<html><head><meta charset="utf-8" /><title>${escapeHtml(title)}</title>
+<style>
+  body{font-family:Arial,sans-serif;padding:20px;color:#111}
+  h1{font-size:18px;margin:0 0 6px}
+  p{margin:0 0 14px;color:#555;font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border:1px solid #ddd;padding:6px;text-align:left}
+  th{background:#f3f4f6}
+</style></head>
+<body>
+  <h1>${escapeHtml(title)}</h1>
+  <p>${escapeHtml(sub)}</p>
+  <table>
+    <thead><tr><th>PL</th><th>Razón social</th><th>Usuario</th><th>Calibración</th><th>Distancia</th></tr></thead>
+    <tbody>${htmlRows}</tbody>
+  </table>
+  <script>window.onload=()=>window.print();</script>
+</body></html>`);
+    w.document.close();
+  }, [nearbyPLsVisible, selectedPL]);
+
   const getSearchButtonText = () => {
     if (!loading) return 'Buscar';
     return geocoding ? 'Geocodificando...' : 'Buscando...';
@@ -1208,7 +1265,7 @@ export default function MapasContent() {
                             </div>
                           )}
 
-                          <div style={{ display: 'flex', gap: 6, margin: '6px 0 8px' }}>
+                          <div style={{ display: 'flex', gap: 6, margin: '6px 0 8px', flexWrap: 'wrap' }}>
                             <button
                               type="button"
                               onClick={() => setMobileCompactList(true)}
@@ -1236,6 +1293,20 @@ export default function MapasContent() {
                               }}
                             >
                               Detalle
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleExportPdf}
+                              className="home-config-btn"
+                              style={{
+                                padding: '6px 10px',
+                                fontSize: 12,
+                                background: '#2563eb',
+                                color: '#fff',
+                                border: '1px solid #1d4ed8',
+                              }}
+                            >
+                              Descargar PDF
                             </button>
                           </div>
 
