@@ -25,6 +25,7 @@ export type PLItem = {
   latitud?: number | null;
   longitud?: number | null;
   baja?: boolean | null;
+  calibracion?: string | null;
   has_visit_year?: boolean;
 };
 
@@ -950,6 +951,7 @@ export default function MapasContent() {
                 radiusKm={radiusKm}
                 groupNameById={groupNameById}
                 visitYearSet={visitYearSet}
+                metricQuickFilter={metricQuickFilter}
               />
             )}
 

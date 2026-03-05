@@ -12,6 +12,7 @@ type MapComponentProps = {
   radiusKm: number;
   groupNameById: Map<number, string>;
   visitYearSet: Set<number>;
+  metricQuickFilter?: 'all' | 'bajas' | 'visitas' | 'sinAsignar' | '2000' | '500';
 };
 
 type GeocodedCoords = { lat: number; lng: number } | null;
@@ -40,6 +41,7 @@ type GeocodeCacheEntry = { lat: number; lng: number } | null;
 type PLVisualStyle = {
   color: string;
   centerDotColor: string;
+  halfOrangeCenter?: boolean;
   badgeText: string | null;
   badgeVariant: 'baja' | 'unassigned' | 'internal' | 'external' | 'group' | 'default';
 };
@@ -53,7 +55,8 @@ type PLVisualStyle = {
  */
 function getPlVisualStyle(
   pl: PLItem | NearbyPLItem,
-  groupNameById: Map<number, string>
+  groupNameById: Map<number, string>,
+  metricQuickFilter?: 'all' | 'bajas' | 'visitas' | 'sinAsignar' | '2000' | '500',
 ): PLVisualStyle {
   // Priority 1: BAJA
   if (pl.baja === true) {
@@ -70,9 +73,14 @@ function getPlVisualStyle(
 
   // Priority 2: Group "2000" or "500"
   if (groupName === '2000' || groupName === '500') {
+    const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
+    const hasCal = cal === 'S' || cal === 'R' || cal.startsWith('SOLIC') || cal.startsWith('REAL');
+    const inGroupFocus = metricQuickFilter === '2000' || metricQuickFilter === '500';
+
     return {
       color: '#3b82f6', // BLUE
       centerDotColor: '#ffffff', // WHITE
+      halfOrangeCenter: inGroupFocus && !hasCal,
       badgeText: `Grupo ${groupName}`,
       badgeVariant: 'group',
     };
@@ -225,7 +233,8 @@ function createNearbyMarkerIcon(
   centerDotColor: string = '#ffffff',
   shouldShrink: boolean = true,
   isBaja: boolean = false,
-  hasVisitHalo: boolean = false
+  hasVisitHalo: boolean = false,
+  halfOrangeCenter: boolean = false,
 ): string {
   // Nearby markers: smaller circle markers (different shape from main marker)
   // For BAJA: use solid black with red center (no opacity)
@@ -236,11 +245,21 @@ function createNearbyMarkerIcon(
     ? `<circle cx="12" cy="12" r="11.5" fill="none" stroke="${VISIT_HALO_COLOR}" stroke-width="2.5" opacity="0.85"/>`
     : '';
   
+  const centerMark = halfOrangeCenter
+    ? `
+      <defs>
+        <clipPath id="halfRight"><rect x="12" y="8" width="4" height="8" /></clipPath>
+      </defs>
+      <circle cx="12" cy="12" r="4" fill="#f97316"/>
+      <circle cx="12" cy="12" r="4" fill="#ffffff" clip-path="url(#halfRight)"/>
+    `
+    : `<circle cx="12" cy="12" r="4" fill="${centerDotColor}"/>`;
+
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}">
       ${haloRing}
       <circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="2"/>
-      <circle cx="12" cy="12" r="4" fill="${centerDotColor}"/>
+      ${centerMark}
     </svg>
   `;
 
@@ -573,7 +592,8 @@ export default function MapComponent({
   focusedPL, 
   radiusKm,
   groupNameById,
-  visitYearSet
+  visitYearSet,
+  metricQuickFilter = 'all',
 }: MapComponentProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [openInfoWindowId, setOpenInfoWindowId] = useState<number | null>(null);
@@ -1092,7 +1112,8 @@ export default function MapComponent({
               : (() => {
                   const visualStyle = getPlVisualStyle(
                     selectedPL,
-                    groupNameById
+                    groupNameById,
+                    metricQuickFilter,
                   );
                   return {
                     url: createMainMarkerIcon(visualStyle.color, visualStyle.centerDotColor, selectedPL.baja === true),
@@ -1107,7 +1128,8 @@ export default function MapComponent({
           {openInfoWindowId === selectedPL.id && (() => {
             const visualStyle = getPlVisualStyle(
               selectedPL,
-              groupNameById
+              groupNameById,
+              metricQuickFilter,
             );
             return (
               <InfoWindow position={center} onCloseClick={handleInfoWindowClose}>
@@ -1138,10 +1160,11 @@ export default function MapComponent({
                 : (() => {
                     const visualStyle = getPlVisualStyle(
                       focusedPL,
-                      groupNameById
+                      groupNameById,
+                      metricQuickFilter,
                     );
                     return {
-                      url: createNearbyMarkerIcon(visualStyle.color, visualStyle.centerDotColor, false, focusedPL.baja === true, visitYearSet.has(focusedPL.id)),
+                      url: createNearbyMarkerIcon(visualStyle.color, visualStyle.centerDotColor, false, focusedPL.baja === true, visitYearSet.has(focusedPL.id), visualStyle.halfOrangeCenter === true),
                       scaledSize: new google.maps.Size(32, 32),
                       anchor: new google.maps.Point(16, 16),
                     };
@@ -1153,7 +1176,8 @@ export default function MapComponent({
             {openInfoWindowId === focusedPL.id && (() => {
               const visualStyle = getPlVisualStyle(
                 focusedPL,
-                groupNameById
+                groupNameById,
+                metricQuickFilter,
               );
               return (
                 <InfoWindow position={focusedPLPosition.coords} onCloseClick={handleInfoWindowClose}>
@@ -1188,7 +1212,7 @@ export default function MapComponent({
             const isBaja = pl.baja === true;
             const hasHalo = visitYearSet.has(pl.id);
 
-            const visualStyle = getPlVisualStyle(pl, groupNameById);
+            const visualStyle = getPlVisualStyle(pl, groupNameById, metricQuickFilter);
 
             return (
               <Marker
@@ -1202,7 +1226,7 @@ export default function MapComponent({
                         anchor: new google.maps.Point(12, 12),
                       }
                     : {
-                        url: createNearbyMarkerIcon(visualStyle.color, visualStyle.centerDotColor, true, isBaja, hasHalo),
+                        url: createNearbyMarkerIcon(visualStyle.color, visualStyle.centerDotColor, true, isBaja, hasHalo, visualStyle.halfOrangeCenter === true),
                         scaledSize: new google.maps.Size(24, 24),
                         anchor: new google.maps.Point(12, 12),
                       }
