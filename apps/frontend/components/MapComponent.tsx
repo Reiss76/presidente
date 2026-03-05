@@ -237,27 +237,24 @@ function createNearbyMarkerIcon(
   halfOrangeCenter: boolean = false,
 ): string {
   // Nearby markers: smaller circle markers (different shape from main marker)
-  // For BAJA: use solid black with red center (no opacity)
   const size = shouldShrink ? 24 : 32;
-  
-  // Purple halo ring around the circle when PL has visits this year
+
+  // Purple halo ring when PL has visits this year
   const haloRing = hasVisitHalo
     ? `<circle cx="12" cy="12" r="11.5" fill="none" stroke="${VISIT_HALO_COLOR}" stroke-width="2.5" opacity="0.85"/>`
     : '';
-  
-  const centerMark = halfOrangeCenter
-    ? `
-      <defs>
-        <clipPath id="halfRight"><rect x="12" y="8" width="4" height="8" /></clipPath>
-      </defs>
-      <circle cx="12" cy="12" r="4" fill="#f97316"/>
-      <circle cx="12" cy="12" r="4" fill="#ffffff" clip-path="url(#halfRight)"/>
-    `
-    : `<circle cx="12" cy="12" r="4" fill="${centerDotColor}"/>`;
+
+  // Orange ring when group filter is active and PL has no calibration
+  const noCalRing = halfOrangeCenter
+    ? `<circle cx="12" cy="12" r="9.8" fill="none" stroke="#f97316" stroke-width="2.6" opacity="0.95"/>`
+    : '';
+
+  const centerMark = `<circle cx="12" cy="12" r="4" fill="${centerDotColor}"/>`;
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}">
       ${haloRing}
+      ${noCalRing}
       <circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="2"/>
       ${centerMark}
     </svg>
