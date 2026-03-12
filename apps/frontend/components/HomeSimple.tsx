@@ -204,6 +204,11 @@ export default function HomeSimple() {
   const [researchText, setResearchText] = useState<string>('');
   const [researchSources, setResearchSources] = useState<Array<{ title: string; url: string }>>([]);
 
+  // Coincidencia de razón social
+  const [razonModal, setRazonModal] = useState(false);
+  const [razonLoading, setRazonLoading] = useState(false);
+  const [razonMatches, setRazonMatches] = useState<CodeItem[]>([]);
+
   // =========
   // BUSCAR POR TEXTO
   // =========
@@ -689,6 +694,17 @@ export default function HomeSimple() {
           <button type="button" className="home-config-btn" style={BTN_SECONDARY} onClick={() => openDocsModal(item, 'general')}>
             Ver documentos
           </button>
+
+          {item.razon_social?.trim() && (
+            <button
+              type="button"
+              className="home-config-btn"
+              style={BTN_SECONDARY}
+              onClick={() => handleRazonSocial()}
+            >
+              Coincidencia razón social
+            </button>
+          )}
         </div>
       </article>
     );
@@ -913,6 +929,39 @@ export default function HomeSimple() {
       setResearchError(e?.message || 'No se pudo investigar el PL.');
     } finally {
       setResearchLoading(false);
+    }
+  }
+
+  // =========
+  // COINCIDENCIA RAZÓN SOCIAL
+  // =========
+  async function handleRazonSocial() {
+    if (!codeResult?.razon_social?.trim()) return;
+    setRazonLoading(true);
+    setRazonMatches([]);
+    setRazonModal(true);
+    try {
+      const data = await fetchJson<CodeItem[]>(
+        `/codes?query=${encodeURIComponent(codeResult.razon_social.trim())}`
+      );
+      const arr = Array.isArray(data) ? data : [];
+      // Exclude current PL, exact razon_social match (normalized)
+      const norm = (s: string) =>
+        s
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toUpperCase()
+          .replace(/\s+/g, ' ')
+          .trim();
+      const target = norm(codeResult.razon_social.trim());
+      const matches = arr.filter(
+        (r) => r.id !== codeResult.id && norm(r.razon_social ?? '') === target
+      );
+      setRazonMatches(matches);
+    } catch {
+      setRazonMatches([]);
+    } finally {
+      setRazonLoading(false);
     }
   }
 
@@ -1618,6 +1667,88 @@ export default function HomeSimple() {
             </div>
           </div>
         )}
+
+      {/* ===================== */}
+      {/* MODAL: COINCIDENCIA RAZÓN SOCIAL */}
+      {/* ===================== */}
+      {razonModal && codeResult && (
+        <div
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.55)', zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}
+          onClick={() => setRazonModal(false)}
+        >
+          <div
+            style={{
+              width: '100%', maxWidth: 720, background: '#fff',
+              borderRadius: 18, border: '1px solid #e5e7eb',
+              boxShadow: '0 18px 60px rgba(0,0,0,0.25)', overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                padding: '14px 16px', borderBottom: '1px solid #e5e7eb',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+              }}
+            >
+              <div>
+                <div className="home-tag">COSMOSX</div>
+                <div style={{ fontSize: 14, fontWeight: 800, marginTop: 2 }}>
+                  Coincidencia de razón social
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                  {codeResult.razon_social}
+                </div>
+              </div>
+              <button className="home-config-btn" type="button" style={BTN_PRIMARY} onClick={() => setRazonModal(false)}>
+                Cerrar
+              </button>
+            </div>
+
+            <div style={{ padding: 16, maxHeight: '70vh', overflow: 'auto' }}>
+              {razonLoading && <p className="home-msg">Buscando coincidencias…</p>}
+
+              {!razonLoading && razonMatches.length === 0 && (
+                <p className="home-msg">Sin otros PLs con la misma razón social.</p>
+              )}
+
+              {!razonLoading && razonMatches.length > 0 && (
+                <>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>
+                    {razonMatches.length} PL{razonMatches.length !== 1 ? 's' : ''} con esta razón social (además del actual):
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {razonMatches.map((r) => (
+                      <div
+                        key={r.id}
+                        style={{
+                          border: '1px solid #e5e7eb', borderRadius: 12,
+                          padding: 12, background: r.baja ? '#fef2f2' : '#f9fafb',
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{r.code}</div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                          {[r.direccion, r.municipio, r.estado].filter(Boolean).join(' · ')}
+                        </div>
+                        <div style={{ fontSize: 12, marginTop: 4, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                          <span>Usuario: <strong>{r.encargado_actual?.trim() || 'Sin asignar'}</strong></span>
+                          {r.calibracion && (
+                            <span>Cal: <strong>{r.calibracion === 'S' ? 'Solicitada' : r.calibracion === 'R' ? 'Realizada' : r.calibracion}</strong></span>
+                          )}
+                          {r.baja && <span style={{ color: '#dc2626', fontWeight: 700 }}>BAJA</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===================== */}
 {/* HEADER (UNIFICADO) */}
