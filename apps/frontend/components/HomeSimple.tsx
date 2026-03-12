@@ -941,16 +941,22 @@ export default function HomeSimple() {
     setRazonMatches([]);
     setRazonModal(true);
     try {
-      const data = await fetchJson<CodeItem[]>(
+      const data = await fetchJson<any>(
         `/codes?query=${encodeURIComponent(codeResult.razon_social.trim())}`
       );
-      const arr = Array.isArray(data) ? data : [];
-      // Exclude current PL, exact razon_social match (normalized)
+      // API returns either { items: [...] } or a flat array
+      const arr: CodeItem[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.items)
+        ? data.items
+        : [];
+      // Normalize: strip accents, punctuation, extra spaces, uppercase
       const norm = (s: string) =>
         s
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
           .toUpperCase()
+          .replace(/[^A-Z0-9\s]/g, '')
           .replace(/\s+/g, ' ')
           .trim();
       const target = norm(codeResult.razon_social.trim());
