@@ -211,6 +211,9 @@ export default function HomeSimple() {
   const [razonLoading, setRazonLoading] = useState(false);
   const [razonMatches, setRazonMatches] = useState<CodeItem[]>([]);
 
+  // Badge counts for result card buttons
+  const [badgeCounts, setBadgeCounts] = useState<{ comments: number; visits: number; docs: number; cal: number } | null>(null);
+
   // =========
   // BUSCAR POR TEXTO
   // =========
@@ -491,6 +494,7 @@ export default function HomeSimple() {
   function clearAllResults() {
     setCodeError(null);
     setCodeResult(null);
+    setBadgeCounts(null);
     setTextError(null);
     setTextResults([]);
     setBulkError(null);
@@ -685,16 +689,25 @@ export default function HomeSimple() {
 
         {/* ✅ botones monocromáticos */}
         <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" className="home-config-btn" style={BTN_SECONDARY} onClick={() => openCommentsModal(item)}>
+          <button type="button" className="home-config-btn" style={{ ...BTN_SECONDARY, position: 'relative' }} onClick={() => openCommentsModal(item)}>
             Ver comentarios
+            {badgeCounts && badgeCounts.comments > 0 && (
+              <span style={{ position: 'absolute', top: -6, right: -6, background: '#111827', color: '#fff', borderRadius: '9999px', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{badgeCounts.comments}</span>
+            )}
           </button>
 
-          <button type="button" className="home-config-btn" style={BTN_SECONDARY} onClick={() => loadVisitsForCode(item)}>
+          <button type="button" className="home-config-btn" style={{ ...BTN_SECONDARY, position: 'relative' }} onClick={() => loadVisitsForCode(item)}>
             Ver visitas
+            {badgeCounts && badgeCounts.visits > 0 && (
+              <span style={{ position: 'absolute', top: -6, right: -6, background: '#111827', color: '#fff', borderRadius: '9999px', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{badgeCounts.visits}</span>
+            )}
           </button>
 
-          <button type="button" className="home-config-btn" style={BTN_SECONDARY} onClick={() => openDocsModal(item, 'general')}>
+          <button type="button" className="home-config-btn" style={{ ...BTN_SECONDARY, position: 'relative' }} onClick={() => openDocsModal(item, 'general')}>
             Ver documentos
+            {badgeCounts && badgeCounts.docs > 0 && (
+              <span style={{ position: 'absolute', top: -6, right: -6, background: '#111827', color: '#fff', borderRadius: '9999px', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{badgeCounts.docs}</span>
+            )}
           </button>
 
           {item.razon_social?.trim() && (
@@ -913,6 +926,22 @@ export default function HomeSimple() {
     }
 
     setCodeResult(item as CodeItem);
+    setBadgeCounts(null);
+    // Fetch counts in parallel (best-effort, errors silently ignored)
+    const itemId = (item as any).id;
+    Promise.all([
+      fetchJson<any[]>(`/codes/${itemId}/comments`).catch(() => []),
+      fetchJson<any[]>(`/codes/${itemId}/visits`).catch(() => []),
+      fetchJson<any[]>(`/codes/${itemId}/files?kind=general`).catch(() => []),
+      fetchJson<any[]>(`/codes/${itemId}/files?kind=cal`).catch(() => []),
+    ]).then(([comments, visits, docs, cal]) => {
+      setBadgeCounts({
+        comments: Array.isArray(comments) ? comments.length : 0,
+        visits: Array.isArray(visits) ? visits.length : 0,
+        docs: Array.isArray(docs) ? docs.length : 0,
+        cal: Array.isArray(cal) ? cal.length : 0,
+      });
+    });
   } catch (e: any) {
     setCodeError(`${e?.message || 'Error al buscar.'} (${API}/codes/by-code)`);
     setCodeResult(null);
