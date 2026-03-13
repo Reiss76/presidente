@@ -855,15 +855,16 @@ export default function MapasContent() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '8px 14px',
-              background: '#f1f5f9',
-              border: '1px solid #cbd5e1',
+              padding: '7px 14px',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 8,
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 600,
-              color: '#334155',
+              color: '#94a3b8',
               cursor: 'pointer',
               alignSelf: 'flex-start',
+              letterSpacing: '0.02em',
             }}
           >
             ← Regresar a la búsqueda
@@ -893,9 +894,9 @@ export default function MapasContent() {
                   style={{
                     padding: '6px 10px',
                     borderRadius: '6px',
-                    border: radiusKm === r ? '2px solid #3b82f6' : '1px solid #d1d5db',
-                    background: radiusKm === r ? '#eff6ff' : '#fff',
-                    color: radiusKm === r ? '#1d4ed8' : '#374151',
+                    border: radiusKm === r ? '1px solid #00ffa3' : '1px solid rgba(255,255,255,0.08)',
+                    background: radiusKm === r ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.04)',
+                    color: radiusKm === r ? '#00ffa3' : '#94a3b8',
                     fontWeight: radiusKm === r ? '700' : '500',
                     fontSize: '13px',
                     cursor: 'pointer',
@@ -915,10 +916,10 @@ export default function MapasContent() {
         {selectedPL && (selectedPL.municipio || selectedPL.estado) && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            fontSize: 12, color: '#475569',
+            fontSize: 12, color: '#94a3b8',
             padding: '6px 12px',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            background: 'rgba(0,255,163,0.06)',
+            border: '1px solid rgba(0,255,163,0.25)',
             borderRadius: 8,
             alignSelf: 'flex-start',
           }}>
@@ -926,7 +927,7 @@ export default function MapasContent() {
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
               <circle cx="12" cy="9" r="2.5"/>
             </svg>
-            <span style={{ fontWeight: 600 }}>
+            <span style={{ fontWeight: 700, color: '#00ffa3' }}>
               {[selectedPL.municipio, selectedPL.estado].filter(Boolean).join(', ')}
             </span>
           </div>
@@ -1389,11 +1390,10 @@ export default function MapasContent() {
                               onClick={() => setMobileCompactList(true)}
                               className="home-config-btn"
                               style={{
-                                padding: '6px 10px',
-                                fontSize: 12,
-                                background: mobileCompactList ? '#111827' : '#f1f5f9',
-                                color: mobileCompactList ? '#fff' : '#334155',
-                                border: '1px solid #cbd5e1',
+                                padding: '6px 10px', fontSize: 11,
+                                background: mobileCompactList ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.05)',
+                                color: mobileCompactList ? '#00ffa3' : '#94a3b8',
+                                border: mobileCompactList ? '1px solid rgba(0,255,163,0.35)' : '1px solid rgba(255,255,255,0.08)',
                               }}
                             >
                               Lista plana
@@ -1403,11 +1403,10 @@ export default function MapasContent() {
                               onClick={() => setMobileCompactList(false)}
                               className="home-config-btn"
                               style={{
-                                padding: '6px 10px',
-                                fontSize: 12,
-                                background: !mobileCompactList ? '#111827' : '#f1f5f9',
-                                color: !mobileCompactList ? '#fff' : '#334155',
-                                border: '1px solid #cbd5e1',
+                                padding: '6px 10px', fontSize: 11,
+                                background: !mobileCompactList ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.05)',
+                                color: !mobileCompactList ? '#00ffa3' : '#94a3b8',
+                                border: !mobileCompactList ? '1px solid rgba(0,255,163,0.35)' : '1px solid rgba(255,255,255,0.08)',
                               }}
                             >
                               Detalle
@@ -1417,11 +1416,10 @@ export default function MapasContent() {
                               onClick={handleExportPdf}
                               className="home-config-btn"
                               style={{
-                                padding: '6px 10px',
-                                fontSize: 12,
-                                background: '#2563eb',
-                                color: '#fff',
-                                border: '1px solid #1d4ed8',
+                                padding: '6px 10px', fontSize: 11,
+                                background: 'rgba(59,130,246,0.15)',
+                                color: '#60a5fa',
+                                border: '1px solid rgba(59,130,246,0.3)',
                               }}
                             >
                               Descargar PDF
@@ -1436,9 +1434,9 @@ export default function MapasContent() {
                                 className="home-config-btn"
                                 style={{
                                   padding: '5px 10px', fontSize: 11,
-                                  background: listCalFilter === 'all' ? '#111827' : '#f1f5f9',
-                                  color: listCalFilter === 'all' ? '#fff' : '#334155',
-                                  border: '1px solid #cbd5e1',
+                                  background: listCalFilter === 'all' ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.05)',
+                                  color: listCalFilter === 'all' ? '#00ffa3' : '#94a3b8',
+                                  border: listCalFilter === 'all' ? '1px solid rgba(0,255,163,0.35)' : '1px solid rgba(255,255,255,0.08)',
                                 }}
                               >
                                 Todas ({nearbyPLsVisible.length})
@@ -1449,9 +1447,9 @@ export default function MapasContent() {
                                 className="home-config-btn"
                                 style={{
                                   padding: '5px 10px', fontSize: 11,
-                                  background: listCalFilter === 'sinCal' ? '#f97316' : '#fff7ed',
-                                  color: listCalFilter === 'sinCal' ? '#fff' : '#9a3412',
-                                  border: '1px solid #fed7aa',
+                                  background: listCalFilter === 'sinCal' ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.07)',
+                                  color: listCalFilter === 'sinCal' ? '#fb923c' : '#f97316',
+                                  border: listCalFilter === 'sinCal' ? '1px solid rgba(249,115,22,0.5)' : '1px solid rgba(249,115,22,0.2)',
                                 }}
                               >
                                 Sin calibración ({sinCalCount})
