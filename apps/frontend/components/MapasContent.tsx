@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AppShell from './AppShell';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { getApiBase } from '../lib/api';
 
 // In-memory geocoding cache
@@ -194,7 +195,8 @@ function getPlVisualStyle(
 }
 
 export default function MapasContent() {
-  const [searchInput, setSearchInput] = useState('');
+  const searchParams = useSearchParams();
+  const [searchInput, setSearchInput] = useState(() => searchParams?.get('code') ?? '');
   const [selectedPL, setSelectedPL] = useState<PLItem | null>(null);
   const [nearbyPLs, setNearbyPLs] = useState<NearbyPLItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -532,6 +534,18 @@ export default function MapasContent() {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, [searchInput, searchPL]);
+
+  // Auto-search when arriving from ?code= param (e.g. from Home "Ver en Mapa")
+  const autoSearchedRef = useRef(false);
+  useEffect(() => {
+    const codeParam = searchParams?.get('code');
+    if (codeParam && !autoSearchedRef.current) {
+      autoSearchedRef.current = true;
+      setSearchInput(codeParam);
+      searchPL(codeParam);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Reset metric quick-filter when changing target PL
   useEffect(() => {

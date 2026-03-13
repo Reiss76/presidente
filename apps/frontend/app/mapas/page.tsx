@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import MapasContent from '../../components/MapasContent';
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function MapasPage() {
-  return <MapasContent />;
+  return (
+    <Suspense>
+      <MapasContent />
+    </Suspense>
+  );
 }

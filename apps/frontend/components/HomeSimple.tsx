@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AppHeader from './AppHeader';
 import { getApiBase, fetchJson } from '../lib/api';
 
@@ -186,6 +187,7 @@ const BTN_DANGER: React.CSSProperties = {
 };
 
 export default function HomeSimple() {
+  const router = useRouter();
   // =========
   // MOUNT + AUTH
   // =========
@@ -705,6 +707,15 @@ export default function HomeSimple() {
               Coincidencia razón social
             </button>
           )}
+
+          <button
+            type="button"
+            className="home-config-btn"
+            style={{ ...BTN_SECONDARY, background: '#111827', color: '#fff', border: '1px solid #111827' }}
+            onClick={() => router.push(`/mapas?code=${encodeURIComponent(item.code)}`)}
+          >
+            Ver en Mapa 🗺️
+          </button>
         </div>
       </article>
     );
