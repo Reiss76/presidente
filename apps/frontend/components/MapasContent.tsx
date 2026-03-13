@@ -850,7 +850,7 @@ export default function MapasContent() {
         {searchParams?.get('code') && (
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => router.push(`/?code=${encodeURIComponent(searchParams!.get('code')!)}`)}
             style={{
               display: 'inline-flex',
               alignItems: 'center',

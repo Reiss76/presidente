@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppHeader from './AppHeader';
 import { getApiBase, fetchJson } from '../lib/api';
 
@@ -188,6 +188,7 @@ const BTN_DANGER: React.CSSProperties = {
 
 export default function HomeSimple() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   // =========
   // MOUNT + AUTH
   // =========
@@ -197,10 +198,11 @@ export default function HomeSimple() {
   // =========
   // BUSCAR POR CÓDIGO
   // =========
-  const [codeQuery, setCodeQuery] = useState('');
+  const [codeQuery, setCodeQuery] = useState(() => searchParams?.get('code') ?? '');
   const [codeLoading, setCodeLoading] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeResult, setCodeResult] = useState<CodeItem | null>(null);
+  const autoSearchedRef = useRef(false);
   const [researchLoading, setResearchLoading] = useState(false);
   const [researchError, setResearchError] = useState<string | null>(null);
   const [researchText, setResearchText] = useState<string>('');
@@ -470,6 +472,54 @@ export default function HomeSimple() {
   // INIT
   // =========
   useEffect(() => setMounted(true), []);
+
+  // Auto-search when arriving from Mapas via /?code=
+  useEffect(() => {
+    const codeParam = searchParams?.get('code');
+    if (codeParam && !autoSearchedRef.current && mounted) {
+      autoSearchedRef.current = true;
+      const upper = codeParam.toUpperCase().trim();
+      setCodeQuery(upper);
+      // Trigger search programmatically
+      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+      // We need to call the handler with the right codeQuery — use direct fetch
+      (async () => {
+        if (!API) return;
+        setCodeLoading(true);
+        setCodeError(null);
+        setCodeResult(null);
+        setBadgeCounts(null);
+        try {
+          const res = await fetch(`${API}/codes/by-code?code=${encodeURIComponent(upper)}`);
+          const data = await res.json();
+          if (!res.ok) { setCodeError((data as any)?.message || `Error ${res.status}`); return; }
+          const item = (data as any)?.item ?? data;
+          if (!item?.id) { setCodeError('No encontrado'); return; }
+          setCodeResult(item as CodeItem);
+          const itemId = item.id;
+          Promise.all([
+            fetchJson<any[]>(`/codes/${itemId}/comments`).catch(() => []),
+            fetchJson<any[]>(`/codes/${itemId}/visits`).catch(() => []),
+            fetchJson<any[]>(`/codes/${itemId}/files?kind=general`).catch(() => []),
+            fetchJson<any[]>(`/codes/${itemId}/files?kind=cal`).catch(() => []),
+          ]).then(([comments, visits, docs, cal]) => {
+            setBadgeCounts({
+              comments: Array.isArray(comments) ? comments.length : 0,
+              visits: Array.isArray(visits) ? visits.length : 0,
+              docs: Array.isArray(docs) ? docs.length : 0,
+              cal: Array.isArray(cal) ? cal.length : 0,
+            });
+          });
+        } catch (e: any) {
+          setCodeError(e?.message || 'Error al buscar.');
+        } finally {
+          setCodeLoading(false);
+        }
+      })();
+      void fakeEvent;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted]);
 
   useEffect(() => {
     if (!mounted) return;

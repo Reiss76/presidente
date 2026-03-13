@@ -1,8 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import HomeSimple from '../components/HomeSimple';
 
 export default function Page() {
-  return <HomeSimple />;
+  return (
+    <Suspense>
+      <HomeSimple />
+    </Suspense>
+  );
 }
