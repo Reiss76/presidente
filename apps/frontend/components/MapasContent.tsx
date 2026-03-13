@@ -831,13 +831,13 @@ export default function MapasContent() {
           </button>
           <div className="mapas-radius-control">
             <label>Radio:</label>
-            <div style={{ display: 'flex', gap: '4px' }}>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {[5, 10, 25, 50, 100, 200].map((r) => (
                 <button
                   key={r}
                   onClick={() => setRadiusKm(r)}
                   style={{
-                    padding: '6px 12px',
+                    padding: '6px 10px',
                     borderRadius: '6px',
                     border: radiusKm === r ? '2px solid #3b82f6' : '1px solid #d1d5db',
                     background: radiusKm === r ? '#eff6ff' : '#fff',
@@ -846,6 +846,8 @@ export default function MapasContent() {
                     fontSize: '13px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    minWidth: '52px',
+                    textAlign: 'center',
                   }}
                 >
                   {r} km

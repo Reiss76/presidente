@@ -1940,12 +1940,42 @@ textarea {
   }
 
   .mapas-radius-control {
-    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .mapas-radius-control > div {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
   .mapas-radius-input {
     padding: 10px 14px;
     font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .mapas-metrics-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .mapas-metric-item {
+    min-width: unset;
+    width: 100%;
+    padding: 8px 4px;
+  }
+
+  .mapas-metric-value {
+    font-size: 20px;
+  }
+
+  .mapas-metric-label {
+    font-size: 10px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
   }
 
   /* Touch-friendly buttons and items */
