@@ -811,8 +811,16 @@ export default function MapasContent() {
   table{width:100%;border-collapse:collapse;font-size:12px}
   th,td{border:1px solid #ddd;padding:6px;text-align:left}
   th{background:#f3f4f6}
+  #back-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-bottom:16px;padding:8px 16px;
+    background:#111827;color:#fff;border:none;border-radius:8px;
+    font-size:13px;font-weight:600;cursor:pointer;
+  }
+  @media print { #back-btn { display:none; } }
 </style></head>
 <body>
+  <button id="back-btn" onclick="window.close()">← Regresar a la app</button>
   <h1>${escapeHtml(title)}</h1>
   <p>${escapeHtml(sub)}</p>
   ${municipiosLine ? `<p style="margin:0 0 14px;font-size:12px;color:#374151"><strong>Municipios:</strong> ${escapeHtml(uniqueMunicipios.join(' · '))}</p>` : ''}
