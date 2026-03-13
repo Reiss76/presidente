@@ -911,6 +911,27 @@ export default function MapasContent() {
           </div>
         </div>
 
+        {/* PL location tag */}
+        {selectedPL && (selectedPL.municipio || selectedPL.estado) && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 12, color: '#475569',
+            padding: '6px 12px',
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            alignSelf: 'flex-start',
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            <span style={{ fontWeight: 600 }}>
+              {[selectedPL.municipio, selectedPL.estado].filter(Boolean).join(', ')}
+            </span>
+          </div>
+        )}
+
         {/* Quick Metrics Bar */}
         {selectedPL && (
           <div className="mapas-metrics-bar">
