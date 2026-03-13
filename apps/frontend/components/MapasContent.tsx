@@ -754,6 +754,12 @@ export default function MapasContent() {
     const groupSuffix = metricQuickFilter === '2000' || metricQuickFilter === '500' ? ` · Grupo ${metricQuickFilter}` : '';
     const calSuffix = listCalFilter === 'sinCal' ? ' · Sin calibración' : '';
     const title = `Reporte mapa - ${selectedPL.code}${groupSuffix}${calSuffix}`;
+    const uniqueMunicipios = Array.from(
+      new Set(rows.map((pl) => [pl.municipio, pl.estado].filter(Boolean).join(', ')).filter(Boolean))
+    ).sort();
+    const municipiosLine = uniqueMunicipios.length
+      ? `Municipios: ${uniqueMunicipios.join(' · ')}`
+      : '';
     const sub = `Generado: ${now.toLocaleString()} · Total: ${rows.length}`;
 
     const escapeHtml = (s: string) =>
@@ -795,6 +801,7 @@ export default function MapasContent() {
 <body>
   <h1>${escapeHtml(title)}</h1>
   <p>${escapeHtml(sub)}</p>
+  ${municipiosLine ? `<p style="margin:0 0 14px;font-size:12px;color:#374151"><strong>Municipios:</strong> ${escapeHtml(uniqueMunicipios.join(' · '))}</p>` : ''}
   <table>
     <thead><tr><th>PL</th><th>Razón social</th><th>Usuario</th><th>Calibración</th><th>Distancia</th></tr></thead>
     <tbody>${htmlRows}</tbody>
