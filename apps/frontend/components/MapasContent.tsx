@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AppShell from './AppShell';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getApiBase } from '../lib/api';
 
 // In-memory geocoding cache
@@ -196,6 +196,7 @@ function getPlVisualStyle(
 
 export default function MapasContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [searchInput, setSearchInput] = useState(() => searchParams?.get('code') ?? '');
   const [selectedPL, setSelectedPL] = useState<PLItem | null>(null);
   const [nearbyPLs, setNearbyPLs] = useState<NearbyPLItem[]>([]);
@@ -845,6 +846,30 @@ export default function MapasContent() {
   return (
     <AppShell title="Mapas" subtitle="Visualización de códigos postales">
       <div className="mapas-container">
+        {/* Back button — only shown when arriving via ?code= from Home */}
+        {searchParams?.get('code') && (
+          <button
+            type="button"
+            onClick={() => router.back()}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              background: '#f1f5f9',
+              border: '1px solid #cbd5e1',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              alignSelf: 'flex-start',
+            }}
+          >
+            ← Regresar a la búsqueda
+          </button>
+        )}
+
         {/* Search Bar */}
         <div className="mapas-search-bar">
           <input
