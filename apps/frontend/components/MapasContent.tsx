@@ -209,6 +209,7 @@ export default function MapasContent() {
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [mapFilterText, setMapFilterText] = useState('');
   const [metricQuickFilter, setMetricQuickFilter] = useState<'all' | 'bajas' | 'visitas' | 'sinAsignar' | '2000' | '500'>('all');
+  const [listCalFilter, setListCalFilter] = useState<'all' | 'sinCal'>('all');
   const [visitYearSet, setVisitYearSet] = useState<Set<number>>(new Set());
 
   const searchRequestIdRef = useRef(0);
@@ -535,7 +536,13 @@ export default function MapasContent() {
   // Reset metric quick-filter when changing target PL
   useEffect(() => {
     setMetricQuickFilter('all');
+    setListCalFilter('all');
   }, [selectedPL?.id]);
+
+  // Reset cal sub-filter when metric filter changes
+  useEffect(() => {
+    setListCalFilter('all');
+  }, [metricQuickFilter]);
 
   // Effect 2: Load Nearby PLs whenever selectedPL.code or radiusKm changes
   useEffect(() => {
@@ -720,12 +727,33 @@ export default function MapasContent() {
     setFocusedPL(pl);
   }, []);
 
+  const drawerPLs = useMemo(() => {
+    if (listCalFilter === 'sinCal') {
+      return nearbyPLsVisible.filter((pl) => {
+        const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
+        return !cal || (cal !== 'S' && cal !== 'R');
+      });
+    }
+    return nearbyPLsVisible;
+  }, [nearbyPLsVisible, listCalFilter]);
+
+  const sinCalCount = useMemo(
+    () =>
+      nearbyPLsVisible.filter((pl) => {
+        const cal = String((pl as any).calibracion ?? '').trim().toUpperCase();
+        return !cal || (cal !== 'S' && cal !== 'R');
+      }).length,
+    [nearbyPLsVisible]
+  );
+
   const handleExportPdf = useCallback(() => {
     if (!selectedPL) return;
 
-    const rows = nearbyPLsVisible;
+    const rows = drawerPLs;
     const now = new Date();
-    const title = `Reporte mapa - ${selectedPL.code}`;
+    const groupSuffix = metricQuickFilter === '2000' || metricQuickFilter === '500' ? ` · Grupo ${metricQuickFilter}` : '';
+    const calSuffix = listCalFilter === 'sinCal' ? ' · Sin calibración' : '';
+    const title = `Reporte mapa - ${selectedPL.code}${groupSuffix}${calSuffix}`;
     const sub = `Generado: ${now.toLocaleString()} · Total: ${rows.length}`;
 
     const escapeHtml = (s: string) =>
@@ -774,7 +802,7 @@ export default function MapasContent() {
   <script>window.onload=()=>window.print();</script>
 </body></html>`);
     w.document.close();
-  }, [nearbyPLsVisible, selectedPL]);
+  }, [drawerPLs, nearbyPLsVisible, selectedPL, metricQuickFilter, listCalFilter]);
 
   const getSearchButtonText = () => {
     if (!loading) return 'Buscar';
@@ -850,7 +878,7 @@ export default function MapasContent() {
               type="button"
               className="mapas-metric-item"
               onClick={() => {
-                setMetricQuickFilter((v) => (v === '2000' ? 'all' : '2000'));
+                setMetricQuickFilter('2000');
                 setIsListOpen(true);
               }}
               style={{
@@ -868,7 +896,7 @@ export default function MapasContent() {
               type="button"
               className="mapas-metric-item"
               onClick={() => {
-                setMetricQuickFilter((v) => (v === '500' ? 'all' : '500'));
+                setMetricQuickFilter('500');
                 setIsListOpen(true);
               }}
               style={{
@@ -1278,7 +1306,7 @@ export default function MapasContent() {
                             </div>
                           )}
 
-                          <div style={{ display: 'flex', gap: 6, margin: '6px 0 8px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: 6, margin: '6px 0 4px', flexWrap: 'wrap' }}>
                             <button
                               type="button"
                               onClick={() => setMobileCompactList(true)}
@@ -1323,8 +1351,39 @@ export default function MapasContent() {
                             </button>
                           </div>
 
+                          {(metricQuickFilter === '2000' || metricQuickFilter === '500') && (
+                            <div style={{ display: 'flex', gap: 6, margin: '4px 0 8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => setListCalFilter('all')}
+                                className="home-config-btn"
+                                style={{
+                                  padding: '5px 10px', fontSize: 11,
+                                  background: listCalFilter === 'all' ? '#111827' : '#f1f5f9',
+                                  color: listCalFilter === 'all' ? '#fff' : '#334155',
+                                  border: '1px solid #cbd5e1',
+                                }}
+                              >
+                                Todas ({nearbyPLsVisible.length})
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setListCalFilter('sinCal')}
+                                className="home-config-btn"
+                                style={{
+                                  padding: '5px 10px', fontSize: 11,
+                                  background: listCalFilter === 'sinCal' ? '#f97316' : '#fff7ed',
+                                  color: listCalFilter === 'sinCal' ? '#fff' : '#9a3412',
+                                  border: '1px solid #fed7aa',
+                                }}
+                              >
+                                Sin calibración ({sinCalCount})
+                              </button>
+                            </div>
+                          )}
+
                           <div className="mapas-pl-list">
-                            {nearbyPLsVisible.map((pl) => {
+                            {drawerPLs.map((pl) => {
                               const visualStyle = getPlVisualStyle(pl, groupNameById);
                               
                               return (
