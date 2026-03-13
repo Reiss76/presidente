@@ -23,6 +23,7 @@ export default function AppShell({
   userLabel,
   userRole,
   monochromeButtons = true,
+  darkMode = false,
 }: {
   title: string;
   subtitle?: string;
@@ -32,6 +33,7 @@ export default function AppShell({
   rightActions?: React.ReactNode;
   children: React.ReactNode;
   monochromeButtons?: boolean;
+  darkMode?: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -125,7 +127,7 @@ export default function AppShell({
   }, [effectiveUser?.role, userRole]);
 
   return (
-    <div className={`cx-shell ${monochromeButtons ? 'cx-mono' : ''} ${sidebarCollapsed ? 'cx-sidebar-collapsed' : ''}`}>
+    <div className={`cx-shell ${monochromeButtons ? 'cx-mono' : ''} ${sidebarCollapsed ? 'cx-sidebar-collapsed' : ''} ${darkMode ? 'cx-dark' : ''}`}>
       {/* Sidebar overlay backdrop (visible on tablet when sidebar is open) */}
       {!sidebarCollapsed && (
         <div className="cx-sidebar-overlay" onClick={toggleSidebar} />

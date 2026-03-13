@@ -844,7 +844,7 @@ export default function MapasContent() {
     selectedPL != null && hasValidCoordinates(selectedPL.latitud, selectedPL.longitud);
 
   return (
-    <AppShell title="Mapas" subtitle="Visualización de códigos postales">
+    <AppShell title="Mapas" subtitle="Visualización de códigos postales" darkMode={true}>
       <div className="mapas-container">
         {/* Back button — only shown when arriving via ?code= from Home */}
         {searchParams?.get('code') && (
