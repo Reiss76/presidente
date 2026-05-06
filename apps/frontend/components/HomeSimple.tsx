@@ -1198,6 +1198,32 @@ export default function HomeSimple() {
   // =========
   // FOTO
   // =========
+
+  /** Redimensiona y comprime una imagen a máximo maxWidth px, calidad q (0-1). */
+  function compressImage(file: File, maxWidth = 1280, quality = 0.82): Promise<File> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          (blob) => resolve(blob ? new File([blob], file.name, { type: 'image/jpeg' }) : file),
+          'image/jpeg',
+          quality,
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
   async function handlePhotoSearch() {
     if (!imageFile) return;
 
@@ -1216,8 +1242,11 @@ export default function HomeSimple() {
       setTextResults([]);
       setBulkResults([]);
 
+      // Comprimir imagen antes de enviar (fotos de iPhone pueden ser 4-8MB)
+      const compressedFile = await compressImage(imageFile, 1280, 0.82);
+
       const form = new FormData();
-      form.append('file', imageFile);
+      form.append('file', compressedFile, imageFile.name);
 
       const res = await fetch(`${API}/codes/image-search`, {
         method: 'POST',
