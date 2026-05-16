@@ -1915,13 +1915,28 @@ export default function HomeSimple() {
           <h2 className="home-title" style={{ fontSize: 18 }}>Buscar por código</h2>
 
           <form onSubmit={handleCodeSearch} className="home-field-block">
-            <div className="home-input-row">
+            <div className="home-input-row" style={{ position: 'relative' }}>
               <input
                 value={codeQuery}
                 onChange={(e) => setCodeQuery(e.target.value)}
                 className="input-pill"
                 placeholder="25329 o PL/25329/EXP/ES/2024"
+                style={{ paddingRight: codeQuery ? 32 : undefined }}
               />
+              {codeQuery && (
+                <button
+                  type="button"
+                  onClick={() => setCodeQuery('')}
+                  style={{
+                    position: 'absolute', right: 106, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: '#94a3b8', fontSize: 16, lineHeight: 1, padding: '0 6px',
+                  }}
+                  aria-label="Limpiar"
+                >
+                  ×
+                </button>
+              )}
               <button className="home-config-btn" style={BTN_PRIMARY} type="submit">
                 {codeLoading ? '...' : 'Buscar'}
               </button>
