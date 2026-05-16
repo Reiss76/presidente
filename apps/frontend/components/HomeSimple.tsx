@@ -1928,9 +1928,12 @@ export default function HomeSimple() {
                   type="button"
                   onClick={() => setCodeQuery('')}
                   style={{
-                    position: 'absolute', right: 106, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#94a3b8', fontSize: 16, lineHeight: 1, padding: '0 6px',
+                    position: 'absolute', right: 110, top: '50%', transform: 'translateY(-50%)',
+                    width: 22, height: 22, borderRadius: '50%',
+                    background: '#cbd5e1', border: 'none', cursor: 'pointer',
+                    color: '#334155', fontSize: 14, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    lineHeight: 1, padding: 0, flexShrink: 0,
                   }}
                   aria-label="Limpiar"
                 >
