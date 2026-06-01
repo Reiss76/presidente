@@ -25,6 +25,8 @@ type CodeItem = {
   baja?: boolean | null;
   calibracion?: string | null; // "S" | "R"
   m13?: boolean | null;
+  sol_neo?: string | null;
+  sol_mp?: string | null;
 };
 
 type CommentItem = {
@@ -699,6 +701,28 @@ export default function HomeSimple() {
             }}
           >
             {groupLabel}
+          </div>
+        )}
+
+        {/* Sol badges (Neo / MP) — abajo izquierda */}
+        {(item.sol_neo || item.sol_mp) && (
+          <div style={{ position: 'absolute', left: 12, bottom: 10, display: 'flex', gap: 6 }}>
+            {item.sol_neo && (
+              <div style={{
+                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
+                background: '#7c3aed', color: '#fff', fontWeight: 800, letterSpacing: '.04em',
+              }}>
+                Neo · {item.sol_neo}
+              </div>
+            )}
+            {item.sol_mp && (
+              <div style={{
+                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
+                background: '#0891b2', color: '#fff', fontWeight: 800, letterSpacing: '.04em',
+              }}>
+                MP · {item.sol_mp}
+              </div>
+            )}
           </div>
         )}
 

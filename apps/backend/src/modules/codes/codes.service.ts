@@ -1624,6 +1624,36 @@ export class CodesService {
   }
 
   // =========================================================
+  // BULK SOL UPDATE (Solstice program)
+  // =========================================================
+  async bulkUpdateSol(
+    entries: { code: string; sol_neo?: string | null; sol_mp?: string | null }[],
+  ) {
+    const updated: string[] = [];
+    const notFound: string[] = [];
+
+    for (const entry of entries) {
+      const rec = await this.prisma.code.findFirst({
+        where: { code: entry.code },
+        select: { id: true },
+      });
+      if (!rec) {
+        notFound.push(entry.code);
+        continue;
+      }
+      await this.prisma.$executeRawUnsafe(
+        `UPDATE codes SET sol_neo = $1, sol_mp = $2 WHERE id = $3`,
+        entry.sol_neo ?? null,
+        entry.sol_mp ?? null,
+        rec.id,
+      );
+      updated.push(entry.code);
+    }
+
+    return { updated, notFound };
+  }
+
+  // =========================================================
   // ASIGNACIONES (filtros por usuario / grupo / estado / municipio)
   // =========================================================
   async assigned(filters: {

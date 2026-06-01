@@ -707,6 +707,26 @@ export class CodesController {
   }
 
   // =========================
+  // BULK SOL (Solstice program)
+  // =========================
+  @Patch('bulk-sol')
+  async bulkSol(
+    @Body()
+    body: { entries: { code: string; sol_neo?: string | null; sol_mp?: string | null }[] },
+  ) {
+    try {
+      const { entries } = body || {};
+      if (!Array.isArray(entries) || entries.length === 0) {
+        return { ok: false, error: 'entries debe ser un array no vacío' };
+      }
+      const results = await this.codesService.bulkUpdateSol(entries);
+      return { ok: true, updated: results.updated, notFound: results.notFound };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Error en bulk-sol' };
+    }
+  }
+
+  // =========================
   // COMENTARIOS (bitácora)
   // =========================
   @Get(':id(\\d+)/comments')

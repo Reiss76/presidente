@@ -1,8 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { PrismaService } from './prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Auto-migrate: add sol_neo / sol_mp columns if not present
+  try {
+    const prisma = app.get(PrismaService);
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE codes ADD COLUMN IF NOT EXISTS sol_neo TEXT;`,
+    );
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE codes ADD COLUMN IF NOT EXISTS sol_mp TEXT;`,
+    );
+    console.log('✅ sol_neo / sol_mp columns ensured');
+  } catch (e) {
+    console.warn('⚠️  sol column migration skipped:', (e as Error).message);
+  }
 
   // 🔒 CORS RESTRINGIDO A DOMINIOS OFICIALES
   app.enableCors({

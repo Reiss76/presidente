@@ -38,6 +38,10 @@ model Code {
   // ✅ BAJA
   baja               Boolean  @default(false)
 
+  // ✅ SOL (Solstice program)
+  sol_neo            String?
+  sol_mp             String?
+
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
 
