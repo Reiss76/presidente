@@ -22,7 +22,8 @@ import { CodesService, Actor } from './codes.service';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const vision = require('@google-cloud/vision');
 
-const CODE_REGEX = /PL\/\d{1,10}(?:\/[A-Z0-9]+)*/g;
+// Matches: PL/1234/EXP/ES/2015  OR  PL 1234  OR  PI 1234 (OCR misread)
+const CODE_REGEX = /(?:PL|PI)[/\s]\d{3,10}(?:\/[A-Z0-9]+)*/gi;
 
 type ResearchSource = { title: string; url: string };
 type ResearchResult = {
@@ -434,7 +435,9 @@ export class CodesController {
         const trimmed = line.trim();
 
         const pls = trimmed.match(CODE_REGEX) ?? [];
-        for (const m of pls) {
+        for (const raw of pls) {
+          // Normalize: "PI 23233" or "PL 23233" → "23233"; "PL/1234/EXP/..." → keep as-is
+          const m = raw.replace(/^(?:PL|PI)\s+/i, '').trim();
           if (!seen.has(m)) {
             seen.add(m);
             rawCodes.push(m);
