@@ -30,6 +30,8 @@ export interface CodeItem {
 
   calibracion?: string | null; // ✅ NUEVO: "S" o "R"
   m13?: boolean | null;
+  sol_neo?: string | null; // ✅ SOL
+  sol_mp?: string | null;  // ✅ SOL
 }
 
 export type Actor = {
@@ -203,6 +205,8 @@ export class CodesService {
     calibracion: true, // ✅ NUEVO
     m13: true,
     baja: true, // ✅ Campo baja para Mapas
+    sol_neo: true, // ✅ SOL
+    sol_mp: true,  // ✅ SOL
   };
 
   private mapRow(row: any): CodeItem {
@@ -221,6 +225,8 @@ export class CodesService {
 
       calibracion: row.calibracion ?? null, // ✅ NUEVO
       m13: row.m13 === undefined || row.m13 === null ? null : Boolean(row.m13),
+      sol_neo: row.sol_neo ?? null, // ✅ SOL
+      sol_mp: row.sol_mp ?? null,   // ✅ SOL
     };
   }
 
