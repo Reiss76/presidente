@@ -1629,25 +1629,37 @@ export class CodesService {
   async bulkUpdateSol(
     entries: { code: string; sol_neo?: string | null; sol_mp?: string | null }[],
   ) {
+    if (!entries.length) return { updated: [] as string[], notFound: [] as string[] };
+
+    // Fetch all matching codes in one query
+    const codes = entries.map((e) => e.code);
+    const existing = await this.prisma.code.findMany({
+      where: { code: { in: codes } },
+      select: { id: true, code: true },
+    });
+    const existingMap = new Map(existing.map((r) => [r.code, r.id]));
+
     const updated: string[] = [];
     const notFound: string[] = [];
 
+    // Build a VALUES list for a single UPDATE ... FROM (VALUES ...) statement
+    const rows: string[] = [];
     for (const entry of entries) {
-      const rec = await this.prisma.code.findFirst({
-        where: { code: entry.code },
-        select: { id: true },
-      });
-      if (!rec) {
-        notFound.push(entry.code);
-        continue;
-      }
-      await this.prisma.$executeRawUnsafe(
-        `UPDATE codes SET sol_neo = $1, sol_mp = $2 WHERE id = $3`,
-        entry.sol_neo ?? null,
-        entry.sol_mp ?? null,
-        rec.id,
-      );
+      const id = existingMap.get(entry.code);
+      if (!id) { notFound.push(entry.code); continue; }
+      const neo = entry.sol_neo ? entry.sol_neo.replace(/'/g, "''") : null;
+      const mp  = entry.sol_mp  ? entry.sol_mp.replace(/'/g,  "''") : null;
+      rows.push(`(${id}::bigint, ${neo ? `'${neo}'` : 'NULL'}, ${mp ? `'${mp}'` : 'NULL'})`);
       updated.push(entry.code);
+    }
+
+    if (rows.length > 0) {
+      await this.prisma.$executeRawUnsafe(`
+        UPDATE codes AS c
+        SET sol_neo = v.sol_neo, sol_mp = v.sol_mp
+        FROM (VALUES ${rows.join(',')}) AS v(id, sol_neo, sol_mp)
+        WHERE c.id = v.id
+      `);
     }
 
     return { updated, notFound };
