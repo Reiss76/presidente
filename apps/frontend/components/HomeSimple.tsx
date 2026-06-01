@@ -680,51 +680,7 @@ export default function HomeSimple() {
           </div>
         )}
 
-        {/* Grupo abajo derecha */}
-        {groupLabel && (
-          <div
-            style={{
-              position: 'absolute',
-              right: 12,
-              bottom: 10,
-              fontSize: 11,
-              padding: '4px 10px',
-              borderRadius: 9999,
-              border:
-                item.baja === true
-                  ? '1px solid rgba(255,255,255,0.18)'
-                  : '1px solid rgba(17,24,39,0.12)',
-              background: item.baja === true ? 'rgba(0,0,0,0.25)' : '#ffffff',
-              color: item.baja === true ? '#f9fafb' : '#111827',
-              fontWeight: 800,
-              letterSpacing: '.04em',
-            }}
-          >
-            {groupLabel}
-          </div>
-        )}
-
-        {/* Sol badges (Neo / MP) — abajo izquierda */}
-        {(item.sol_neo || item.sol_mp) && (
-          <div style={{ position: 'absolute', left: 12, bottom: 10, display: 'flex', gap: 6 }}>
-            {item.sol_neo && (
-              <div style={{
-                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
-                background: '#7c3aed', color: '#fff', fontWeight: 800, letterSpacing: '.04em',
-              }}>
-                Neo · {item.sol_neo}
-              </div>
-            )}
-            {item.sol_mp && (
-              <div style={{
-                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
-                background: '#0891b2', color: '#fff', fontWeight: 800, letterSpacing: '.04em',
-              }}>
-                MP · {item.sol_mp}
-              </div>
-            )}
-          </div>
-        )}
+        {/* Fila de badges inferior: Sol (Neo/MP) + Grupo — en flujo normal, sin absolutos */}
 
         <div onClick={() => openMaps(item)} style={{ cursor: 'pointer' }}>
           <div style={{ fontWeight: 700 }}>{item.code}</div>
@@ -809,6 +765,39 @@ export default function HomeSimple() {
             Ver en Mapa
           </button>
         </div>
+
+        {/* Fila de badges: Sol + Grupo */}
+        {(item.sol_neo || item.sol_mp || groupLabel) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, alignItems: 'center' }}>
+            {item.sol_neo && (
+              <span style={{
+                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
+                background: '#7c3aed', color: '#fff', fontWeight: 700, letterSpacing: '.04em',
+              }}>
+                Neo · {item.sol_neo}
+              </span>
+            )}
+            {item.sol_mp && (
+              <span style={{
+                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
+                background: '#0891b2', color: '#fff', fontWeight: 700, letterSpacing: '.04em',
+              }}>
+                MP · {item.sol_mp}
+              </span>
+            )}
+            {groupLabel && (
+              <span style={{
+                fontSize: 11, padding: '4px 10px', borderRadius: 9999,
+                border: item.baja === true ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(17,24,39,0.15)',
+                background: item.baja === true ? 'rgba(0,0,0,0.25)' : '#f3f4f6',
+                color: item.baja === true ? '#f9fafb' : '#374151',
+                fontWeight: 700, letterSpacing: '.04em',
+              }}>
+                {groupLabel}
+              </span>
+            )}
+          </div>
+        )}
       </article>
     );
   }
