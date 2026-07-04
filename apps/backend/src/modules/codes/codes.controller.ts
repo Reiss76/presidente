@@ -465,6 +465,30 @@ export class CodesController {
   }
 
   // =========================
+  // HERRAMIENTAS: CREAR GRUPO / ENCARGADO / SUB-ENCARGADO
+  // =========================
+  @Post('tools/group')
+  async createGroup(@Body('name') name?: string) {
+    if (!name?.trim()) throw new BadRequestException('name es requerido');
+    const row = await this.codesService.createGroup(name.trim());
+    return row;
+  }
+
+  @Post('tools/encargado')
+  async createEncargado(@Body('nombre') nombre?: string) {
+    if (!nombre?.trim()) throw new BadRequestException('nombre es requerido');
+    const row = await this.codesService.createEncargado(nombre.trim());
+    return row;
+  }
+
+  @Post('tools/sub-encargado')
+  async createSubEncargado(@Body('nombre') nombre?: string) {
+    if (!nombre?.trim()) throw new BadRequestException('nombre es requerido');
+    const row = await this.codesService.createSubEncargado(nombre.trim());
+    return row;
+  }
+
+  // =========================
   // INVESTIGACIÓN IA (PL)
   // =========================
   @Post('tools/research')
