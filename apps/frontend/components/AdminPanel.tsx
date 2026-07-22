@@ -185,6 +185,12 @@ export default function AdminPanel(props: AdminPanelProps) {
   const [bulkComentario, setBulkComentario] = useState('');
   const [bulkCalibracion, setBulkCalibracion] = useState('');
   const [bulkM13, setBulkM13] = useState<'' | 'set' | 'unset'>('');
+  const [bulkVisitType, setBulkVisitType] = useState<VisitType>('verificacion');
+  const [bulkVisitDate, setBulkVisitDate] = useState('');
+  const [bulkVisitNotes, setBulkVisitNotes] = useState('');
+  const [bulkVisitSaving, setBulkVisitSaving] = useState(false);
+  const [bulkVisitMessage, setBulkVisitMessage] = useState<string | null>(null);
+  const [bulkVisitError, setBulkVisitError] = useState<string | null>(null);
 
   // ✅ NUEVO: confirmación para "cambiar usuario" masivamente
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -804,6 +810,48 @@ export default function AdminPanel(props: AdminPanelProps) {
       return false;
     } finally {
       setBulkSaving(false);
+    }
+  }
+
+  async function bulkAddVisits() {
+    if (!bulkVisitDate.trim()) {
+      setBulkVisitError('La fecha es obligatoria.');
+      return;
+    }
+    if (!bulkResults.length) {
+      setBulkVisitError('Primero busca la lista de códigos.');
+      return;
+    }
+    setBulkVisitSaving(true);
+    setBulkVisitMessage(null);
+    setBulkVisitError(null);
+    let ok = 0;
+    let fail = 0;
+    for (const item of bulkResults) {
+      try {
+        const res = await fetch(`${API}/codes/${item.id}/visits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            visit_date: bulkVisitDate.trim(),
+            visit_type: bulkVisitType,
+            notes: bulkVisitNotes.trim() || undefined,
+          }),
+        });
+        if (res.ok) ok++;
+        else fail++;
+      } catch {
+        fail++;
+      }
+    }
+    setBulkVisitSaving(false);
+    if (fail === 0) {
+      setBulkVisitMessage(`✅ ${ok} visita${ok !== 1 ? 's' : ''} agregada${ok !== 1 ? 's' : ''} correctamente.`);
+      setBulkVisitDate('');
+      setBulkVisitNotes('');
+    } else {
+      setBulkVisitError(`${ok} ok, ${fail} fallaron.`);
     }
   }
 
@@ -1915,6 +1963,57 @@ export default function AdminPanel(props: AdminPanelProps) {
                 <p className="admin-note" style={{ margin: 0 }}>
                   Solicita confirmación con contraseña y aplica a la lista cargada.
                 </p>
+              </div>
+
+              {/* VISITAS MASIVAS */}
+              <div className="admin-tools-col" style={{ gridColumn: '1 / -1' }}>
+                <label className="admin-label">Agregar visita a toda la lista</label>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  <div>
+                    <div className="admin-label" style={{ fontSize: 11, marginBottom: 3 }}>Tipo</div>
+                    <select
+                      value={bulkVisitType}
+                      onChange={(e) => setBulkVisitType(e.target.value as VisitType)}
+                      className="admin-select admin-input-pill"
+                      style={{ minWidth: 140 }}
+                    >
+                      <option value="verificacion">Verificación</option>
+                      <option value="calibracion">Calibración</option>
+                      <option value="supervision">Supervisión</option>
+                      <option value="cateo">Cateo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <div className="admin-label" style={{ fontSize: 11, marginBottom: 3 }}>Fecha</div>
+                    <input
+                      type="date"
+                      value={bulkVisitDate}
+                      onChange={(e) => setBulkVisitDate(e.target.value)}
+                      className="admin-input admin-input-pill"
+                      style={{ minWidth: 140 }}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 160 }}>
+                    <div className="admin-label" style={{ fontSize: 11, marginBottom: 3 }}>Notas (opcional)</div>
+                    <input
+                      value={bulkVisitNotes}
+                      onChange={(e) => setBulkVisitNotes(e.target.value)}
+                      placeholder="Ej. Visita masiva junio"
+                      className="admin-input admin-input-pill"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="home-config-btn"
+                    style={BTN_BLACK}
+                    disabled={bulkVisitSaving}
+                    onClick={bulkAddVisits}
+                  >
+                    {bulkVisitSaving ? 'Guardando…' : 'Agregar visita a todos'}
+                  </button>
+                </div>
+                {bulkVisitMessage && <p className="admin-status admin-status-ok" style={{ marginTop: 6 }}>{bulkVisitMessage}</p>}
+                {bulkVisitError && <p className="admin-status admin-status-error" style={{ marginTop: 6 }}>{bulkVisitError}</p>}
               </div>
             </div>
 
