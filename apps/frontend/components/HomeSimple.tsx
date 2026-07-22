@@ -123,10 +123,11 @@ function normalizeCodes(list: string[]): string[] {
   return Array.from(new Set(cores));
 }
 
-function groupLabelFromId(grupo_id?: number | null): string {
+function groupLabelFromId(grupo_id?: number | null, map?: Record<number, string>): string {
   if (grupo_id == null) return '';
   const gid = Number(grupo_id);
-  return GROUP_LABELS[gid] ?? `Gr-${gid}`;
+  const m = map ?? GROUP_LABELS;
+  return m[gid] ?? `Gr-${gid}`;
 }
 
 function groupKind(grupo_id?: number | null): 'g2000' | 'g500' | 'gint' | 'gext' | 'other' {
@@ -196,6 +197,7 @@ export default function HomeSimple() {
   // =========
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [groupMap, setGroupMap] = useState<Record<number, string>>({ 1: 'Gr-2000', 2: 'Gr-500', 3: 'Gr-Int', 4: 'Gr-Ext' });
 
   // =========
   // BUSCAR POR CÓDIGO
@@ -475,6 +477,19 @@ export default function HomeSimple() {
   // =========
   useEffect(() => setMounted(true), []);
 
+  // Cargar grupos dinámicamente para etiquetas correctas
+  useEffect(() => {
+    fetch(`${API}/codes/groups`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((groups: { id: number; name: string }[]) => {
+        if (!Array.isArray(groups)) return;
+        const map: Record<number, string> = {};
+        for (const g of groups) map[Number(g.id)] = g.name;
+        setGroupMap(map);
+      })
+      .catch(() => {});
+  }, []);
+
   // Auto-search when arriving from Mapas via /?code=
   useEffect(() => {
     const codeParam = searchParams?.get('code');
@@ -595,7 +610,7 @@ export default function HomeSimple() {
 
   function renderResultCard(item: CodeItem) {
     const borderColor = borderColorForItem(item);
-    const groupLabel = groupLabelFromId(item.grupo_id);
+    const groupLabel = groupLabelFromId(item.grupo_id, groupMap);
     const cal = calLabel(item.calibracion);
 
     return (
@@ -827,7 +842,7 @@ export default function HomeSimple() {
       r.direccion ?? '',
       r.municipio ?? '',
       r.estado ?? '',
-      groupLabelFromId(r.grupo_id),
+      groupLabelFromId(r.grupo_id, groupMap),
       r.encargado_actual ?? '',
       r.encargado_anterior ?? '',
       r.calibracion ?? '',

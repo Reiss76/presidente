@@ -790,10 +790,7 @@ export class CodesService {
     if (!trimmed) return null;
 
     const rows = await this.prisma.$queryRaw<{ id: bigint; name: string }[]>`
-      INSERT INTO groups (name)
-      VALUES (${trimmed})
-      ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-      RETURNING id, name;
+      INSERT INTO groups (name) VALUES (${trimmed}) RETURNING id, name;
     `;
     if (!rows.length) return null;
     return { id: Number(rows[0].id), name: rows[0].name };
@@ -804,10 +801,7 @@ export class CodesService {
     if (!trimmed) return null;
 
     const rows = await this.prisma.$queryRaw<{ id: bigint; nombre: string }[]>`
-      INSERT INTO encargados (nombre)
-      VALUES (${trimmed})
-      ON CONFLICT (nombre) DO UPDATE SET nombre = EXCLUDED.nombre
-      RETURNING id, nombre;
+      INSERT INTO encargados (nombre) VALUES (${trimmed}) RETURNING id, nombre;
     `;
     if (!rows.length) return null;
     return { id: Number(rows[0].id), nombre: rows[0].nombre };
@@ -818,10 +812,7 @@ export class CodesService {
     if (!trimmed) return null;
 
     const rows = await this.prisma.$queryRaw<{ id: bigint; nombre: string }[]>`
-      INSERT INTO sub_encargados (nombre)
-      VALUES (${trimmed})
-      ON CONFLICT (nombre) DO UPDATE SET nombre = EXCLUDED.nombre
-      RETURNING id, nombre;
+      INSERT INTO sub_encargados (nombre) VALUES (${trimmed}) RETURNING id, nombre;
     `;
     if (!rows.length) return null;
     return { id: Number(rows[0].id), nombre: rows[0].nombre };
