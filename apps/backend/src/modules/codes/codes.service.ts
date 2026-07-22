@@ -818,6 +818,50 @@ export class CodesService {
     return { id: Number(rows[0].id), nombre: rows[0].nombre };
   }
 
+  async findByMunicipio(q: string, include_baja: boolean) {
+    const rows = await this.prisma.$queryRaw<
+      {
+        id: bigint;
+        code: string;
+        razon_social: string | null;
+        municipio: string | null;
+        estado: string | null;
+        direccion: string | null;
+        encargado_actual: string | null;
+        grupo_id: number | null;
+        calibracion: string | null;
+        baja: boolean | null;
+        lat: number | null;
+        lon: number | null;
+      }[]
+    >`
+      SELECT id, code, razon_social, municipio, estado, direccion,
+             encargado_actual, grupo_id, calibracion, baja, lat, lon
+      FROM codes
+      WHERE UNACCENT(LOWER(municipio)) LIKE UNACCENT(LOWER(${'%' + q + '%'}))
+        ${include_baja ? Prisma.sql`` : Prisma.sql`AND (baja IS NULL OR baja = false)`}
+      ORDER BY municipio ASC, id ASC
+      LIMIT 2000;
+    `;
+    return {
+      total: rows.length,
+      items: rows.map((r) => ({
+        id: Number(r.id),
+        code: r.code,
+        razon_social: r.razon_social,
+        municipio: r.municipio,
+        estado: r.estado,
+        direccion: r.direccion,
+        encargado_actual: r.encargado_actual,
+        grupo_id: r.grupo_id ? Number(r.grupo_id) : null,
+        calibracion: r.calibracion,
+        baja: r.baja,
+        lat: r.lat ? Number(r.lat) : null,
+        lon: r.lon ? Number(r.lon) : null,
+      })),
+    };
+  }
+
   async getCatalogs() {
     let groupsTableAvailable = true;
     let groups: { id: number; name: string }[] = [];

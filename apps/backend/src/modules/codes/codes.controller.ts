@@ -675,6 +675,16 @@ export class CodesController {
     return this.codesService.findByCode(code);
   }
 
+  // GET /codes/by-municipio?q=CHALCO&include_baja=false
+  @Get('by-municipio')
+  async findByMunicipio(
+    @Query('q') q?: string,
+    @Query('include_baja') include_baja?: string,
+  ) {
+    if (!q?.trim()) return { total: 0, items: [] };
+    return this.codesService.findByMunicipio(q.trim(), this.parseBool(include_baja) ?? false);
+  }
+
   // =========================
   // MASIVO
   // =========================

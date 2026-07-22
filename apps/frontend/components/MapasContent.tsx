@@ -198,6 +198,12 @@ export default function MapasContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(() => searchParams?.get('code') ?? '');
+  const [searchMode, setSearchMode] = useState<'pl' | 'municipio'>('pl');
+  const [municipioInput, setMunicipioInput] = useState('');
+  const [municipioResults, setMunicipioResults] = useState<NearbyPLItem[]>([]);
+  const [municipioLoading, setMunicipioLoading] = useState(false);
+  const [municipioError, setMunicipioError] = useState<string | null>(null);
+  const [municipioLabel, setMunicipioLabel] = useState<string | null>(null);
   const [selectedPL, setSelectedPL] = useState<PLItem | null>(null);
   const [nearbyPLs, setNearbyPLs] = useState<NearbyPLItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -514,6 +520,50 @@ export default function MapasContent() {
     lastSearchedValueRef.current = '';
     searchPL(searchInput);
   }, [searchInput, searchPL]);
+
+  // Búsqueda por municipio
+  const handleMunicipioSearch = useCallback(async () => {
+    const q = municipioInput.trim();
+    if (!q) return;
+    setMunicipioLoading(true);
+    setMunicipioError(null);
+    setMunicipioResults([]);
+    setMunicipioLabel(null);
+    setSelectedPL(null);
+    setNearbyPLs([]);
+    try {
+      const res = await fetch(`${API}/codes/by-municipio?q=${encodeURIComponent(q)}&include_baja=false`);
+      const data = await res.json();
+      const items: NearbyPLItem[] = (data.items ?? []).map((r: any) => ({
+        id: r.id,
+        code: r.code,
+        razon_social: r.razon_social,
+        municipio: r.municipio,
+        estado: r.estado,
+        direccion: r.direccion,
+        encargado_actual: r.encargado_actual,
+        grupo_id: r.grupo_id,
+        calibracion: r.calibracion,
+        baja: r.baja,
+        lat: r.lat,
+        lon: r.lon,
+        distance_km: 0,
+        visit_count: 0,
+      }));
+      if (!items.length) {
+        setMunicipioError(`No se encontraron PLs activos en "${q}"`);
+      } else {
+        setMunicipioResults(items);
+        setNearbyPLs(items);
+        const muns = [...new Set(items.map((i) => i.municipio).filter(Boolean))];
+        setMunicipioLabel(`${items.length} PLs en ${muns.slice(0, 3).join(', ')}${muns.length > 3 ? '…' : ''}`);
+      }
+    } catch {
+      setMunicipioError('Error al buscar municipio');
+    } finally {
+      setMunicipioLoading(false);
+    }
+  }, [municipioInput]);
 
   // Auto-search on debounce
   useEffect(() => {
@@ -871,45 +921,91 @@ export default function MapasContent() {
           </button>
         )}
 
+        {/* Search Mode Toggle */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          {(['pl', 'municipio'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setSearchMode(mode)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: searchMode === mode ? '1px solid #00ffa3' : '1px solid rgba(255,255,255,0.12)',
+                background: searchMode === mode ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.04)',
+                color: searchMode === mode ? '#00ffa3' : '#94a3b8',
+                fontWeight: searchMode === mode ? 700 : 500,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              {mode === 'pl' ? 'Buscar por PL' : 'Buscar por Municipio'}
+            </button>
+          ))}
+        </div>
+
         {/* Search Bar */}
         <div className="mapas-search-bar">
-          <input
-            type="text"
-            className="mapas-search-input"
-            placeholder="Buscar PL (ej: PL/5488/EXP/ES/2015)"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button className="mapas-search-btn" onClick={handleSearch} disabled={loading || geocoding}>
-            {getSearchButtonText()}
-          </button>
-          <div className="mapas-radius-control">
-            <label>Radio:</label>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {[5, 10, 25, 50, 100, 200].map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRadiusKm(r)}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    border: radiusKm === r ? '1px solid #00ffa3' : '1px solid rgba(255,255,255,0.08)',
-                    background: radiusKm === r ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.04)',
-                    color: radiusKm === r ? '#00ffa3' : '#94a3b8',
-                    fontWeight: radiusKm === r ? '700' : '500',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    minWidth: '52px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {r} km
-                </button>
-              ))}
-            </div>
-          </div>
+          {searchMode === 'pl' ? (
+            <>
+              <input
+                type="text"
+                className="mapas-search-input"
+                placeholder="Buscar PL (ej: PL/5488/EXP/ES/2015)"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <button className="mapas-search-btn" onClick={handleSearch} disabled={loading || geocoding}>
+                {getSearchButtonText()}
+              </button>
+              <div className="mapas-radius-control">
+                <label>Radio:</label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {[5, 10, 25, 50, 100, 200].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRadiusKm(r)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: radiusKm === r ? '1px solid #00ffa3' : '1px solid rgba(255,255,255,0.08)',
+                        background: radiusKm === r ? 'rgba(0,255,163,0.12)' : 'rgba(255,255,255,0.04)',
+                        color: radiusKm === r ? '#00ffa3' : '#94a3b8',
+                        fontWeight: radiusKm === r ? '700' : '500',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        minWidth: '52px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {r} km
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <input
+                type="text"
+                className="mapas-search-input"
+                placeholder="Ej: CHALCO, MONTERREY, GUADALUPE…"
+                value={municipioInput}
+                onChange={(e) => setMunicipioInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleMunicipioSearch()}
+              />
+              <button className="mapas-search-btn" onClick={handleMunicipioSearch} disabled={municipioLoading}>
+                {municipioLoading ? 'Buscando…' : 'BUSCAR'}
+              </button>
+              {municipioLabel && (
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#00ffa3' }}>{municipioLabel}</p>
+              )}
+              {municipioError && (
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: '#f87171' }}>{municipioError}</p>
+              )}
+            </>
+          )}
         </div>
 
         {/* PL location tag */}
