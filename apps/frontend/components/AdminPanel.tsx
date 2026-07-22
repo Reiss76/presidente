@@ -216,6 +216,12 @@ export default function AdminPanel(props: AdminPanelProps) {
   const [newGroupName, setNewGroupName] = useState('');
   const [newEncargadoName, setNewEncargadoName] = useState('');
   const [newSubEncargadoName, setNewSubEncargadoName] = useState('');
+  const [addGroupSaving, setAddGroupSaving] = useState(false);
+  const [addGroupMsg, setAddGroupMsg] = useState<string | null>(null);
+  const [addEncargadoSaving, setAddEncargadoSaving] = useState(false);
+  const [addEncargadoMsg, setAddEncargadoMsg] = useState<string | null>(null);
+  const [addSubSaving, setAddSubSaving] = useState(false);
+  const [addSubMsg, setAddSubMsg] = useState<string | null>(null);
 
   const [createdGroups, setCreatedGroups] = useState<string[]>([]);
   const [createdEncargados, setCreatedEncargados] = useState<string[]>([]);
@@ -327,7 +333,8 @@ export default function AdminPanel(props: AdminPanelProps) {
   async function addGroup() {
     const name = newGroupName.trim();
     if (!name) return;
-
+    setAddGroupSaving(true);
+    setAddGroupMsg(null);
     try {
       const res = await fetch(`${API}/codes/tools/group`, {
         method: 'POST',
@@ -336,20 +343,24 @@ export default function AdminPanel(props: AdminPanelProps) {
         body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
-
       const data = await res.json();
       setCreatedGroups((prev) => [data.name, ...prev.slice(0, 4)]);
       setCatalogGroups((prev) => [{ id: data.id, name: data.name }, ...prev]);
       setNewGroupName('');
-    } catch (err) {
-      console.error(err);
+      setAddGroupMsg(`✅ Grupo "${data.name}" creado`);
+      setTimeout(() => setAddGroupMsg(null), 4000);
+    } catch (err: any) {
+      setAddGroupMsg(`❌ ${err?.message || 'Error al crear grupo'}`);
+    } finally {
+      setAddGroupSaving(false);
     }
   }
 
   async function addEncargado() {
     const nombre = newEncargadoName.trim();
     if (!nombre) return;
-
+    setAddEncargadoSaving(true);
+    setAddEncargadoMsg(null);
     try {
       const res = await fetch(`${API}/codes/tools/encargado`, {
         method: 'POST',
@@ -358,20 +369,24 @@ export default function AdminPanel(props: AdminPanelProps) {
         body: JSON.stringify({ nombre }),
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
-
       const data = await res.json();
       setCreatedEncargados((prev) => [data.nombre, ...prev.slice(0, 4)]);
       setCatalogEncargados((prev) => [{ id: data.id, nombre: data.nombre }, ...prev]);
       setNewEncargadoName('');
-    } catch (err) {
-      console.error(err);
+      setAddEncargadoMsg(`✅ Usuario "${data.nombre}" creado`);
+      setTimeout(() => setAddEncargadoMsg(null), 4000);
+    } catch (err: any) {
+      setAddEncargadoMsg(`❌ ${err?.message || 'Error al crear usuario'}`);
+    } finally {
+      setAddEncargadoSaving(false);
     }
   }
 
   async function addSubEncargado() {
     const nombre = newSubEncargadoName.trim();
     if (!nombre) return;
-
+    setAddSubSaving(true);
+    setAddSubMsg(null);
     try {
       const res = await fetch(`${API}/codes/tools/sub-encargado`, {
         method: 'POST',
@@ -380,12 +395,15 @@ export default function AdminPanel(props: AdminPanelProps) {
         body: JSON.stringify({ nombre }),
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
-
       const data = await res.json();
       setCatalogSubEncargados((prev) => [{ id: data.id, nombre: data.nombre }, ...prev]);
       setNewSubEncargadoName('');
-    } catch (err) {
-      console.error(err);
+      setAddSubMsg(`✅ Sub usuario "${data.nombre}" creado`);
+      setTimeout(() => setAddSubMsg(null), 4000);
+    } catch (err: any) {
+      setAddSubMsg(`❌ ${err?.message || 'Error al crear sub usuario'}`);
+    } finally {
+      setAddSubSaving(false);
     }
   }
 
@@ -1801,11 +1819,12 @@ export default function AdminPanel(props: AdminPanelProps) {
                 placeholder="Ej. 2000"
                 className="admin-input admin-input-pill"
               />
-              <button type="button" className="home-config-btn" style={BTN_BLACK} onClick={addGroup}>
-                Agregar
+              <button type="button" className="home-config-btn" style={BTN_BLACK} onClick={addGroup} disabled={addGroupSaving}>
+                {addGroupSaving ? 'Guardando…' : 'Agregar'}
               </button>
             </div>
-            {createdGroups.length > 0 && <p className="admin-note">Últimos: {createdGroups.join(', ')}</p>}
+            {addGroupMsg && <p className="admin-status" style={{ marginTop: 4, fontWeight: 600, fontSize: 13 }}>{addGroupMsg}</p>}
+            {createdGroups.length > 0 && !addGroupMsg && <p className="admin-note">Últimos: {createdGroups.join(', ')}</p>}
           </div>
 
           <div className="admin-tools-col">
@@ -1817,11 +1836,12 @@ export default function AdminPanel(props: AdminPanelProps) {
                 placeholder="Ej. POL"
                 className="admin-input admin-input-pill"
               />
-              <button type="button" className="home-config-btn" style={BTN_BLACK} onClick={addEncargado}>
-                Agregar
+              <button type="button" className="home-config-btn" style={BTN_BLACK} onClick={addEncargado} disabled={addEncargadoSaving}>
+                {addEncargadoSaving ? 'Guardando…' : 'Agregar'}
               </button>
             </div>
-            {createdEncargados.length > 0 && <p className="admin-note">Últimos: {createdEncargados.join(', ')}</p>}
+            {addEncargadoMsg && <p className="admin-status" style={{ marginTop: 4, fontWeight: 600, fontSize: 13 }}>{addEncargadoMsg}</p>}
+            {createdEncargados.length > 0 && !addEncargadoMsg && <p className="admin-note">Últimos: {createdEncargados.join(', ')}</p>}
           </div>
 
           <div className="admin-tools-col">
@@ -1833,10 +1853,11 @@ export default function AdminPanel(props: AdminPanelProps) {
                 placeholder="Ej. LS"
                 className="admin-input admin-input-pill"
               />
-              <button type="button" className="home-config-btn" style={BTN_BLACK} onClick={addSubEncargado}>
-                Agregar
+              <button type="button" className="home-config-btn" style={BTN_BLACK} onClick={addSubEncargado} disabled={addSubSaving}>
+                {addSubSaving ? 'Guardando…' : 'Agregar'}
               </button>
             </div>
+            {addSubMsg && <p className="admin-status" style={{ marginTop: 4, fontWeight: 600, fontSize: 13 }}>{addSubMsg}</p>}
           </div>
         </div>
       </section>
