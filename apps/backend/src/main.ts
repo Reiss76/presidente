@@ -19,6 +19,28 @@ async function bootstrap() {
     console.warn('⚠️  sol column migration skipped:', (e as Error).message);
   }
 
+  // Auto-migrate: ensure encargados and sub_encargados catalog tables exist
+  try {
+    const prisma = app.get(PrismaService);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS encargados (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS sub_encargados (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log('✅ encargados / sub_encargados tables ensured');
+  } catch (e) {
+    console.warn('⚠️  encargados/sub_encargados migration skipped:', (e as Error).message);
+  }
+
   // 🔒 CORS RESTRINGIDO A DOMINIOS OFICIALES
   app.enableCors({
     origin: (origin, callback) => {
