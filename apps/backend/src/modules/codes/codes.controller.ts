@@ -456,10 +456,11 @@ export class CodesController {
 
       const results = await this.codesService.bulkLookup(rawCodes);
       return { text, codes: rawCodes, results };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error OCR:', err);
+      const msg = err?.message || String(err) || 'Error desconocido';
       throw new InternalServerErrorException(
-        'No se pudo procesar la imagen. Intenta otra vez con más luz.',
+        `OCR error: ${msg}`,
       );
     }
   }
